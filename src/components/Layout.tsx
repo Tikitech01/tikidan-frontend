@@ -137,17 +137,18 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     { text: 'Leave Settings', icon: <Settings fontSize="small" />, path: '/leave-settings', color: '#2196f3' },
   ];
 
+  // Filter company menu items based on user role
   const companyMenuItems = [
-    { text: 'Company', icon: <Business fontSize="small" />, path: '/company', color: '#2196f3' },
-    { text: 'Attendance', icon: <Schedule fontSize="small" />, path: '/attendance', color: '#2196f3' },
-    { text: 'Employees', icon: <Badge fontSize="small" />, path: '/employees', color: '#2196f3' },
-    { text: 'Categories', icon: <Category fontSize="small" />, path: '/categories', color: '#2196f3' },
-    { text: 'Department', icon: <GroupWork fontSize="small" />, path: '/department', color: '#2196f3' },
-    { text: 'Branches', icon: <LocationOn fontSize="small" />, path: '/branches', color: '#2196f3' },
-    { text: 'Holiday', icon: <Event fontSize="small" />, path: '/holiday', color: '#2196f3' },
-    { text: 'Billing', icon: <Receipt fontSize="small" />, path: '/billing', color: '#2196f3' },
-    { text: 'Company Profile', icon: <AccountBalance fontSize="small" />, path: '/company-profile', color: '#2196f3' },
-  ];
+    { text: 'Company', icon: <Business fontSize="small" />, path: '/company', color: '#2196f3', adminOnly: false },
+    { text: 'Attendance', icon: <Schedule fontSize="small" />, path: '/attendance', color: '#2196f3', adminOnly: false },
+    { text: 'Employees', icon: <Badge fontSize="small" />, path: '/employees', color: '#2196f3', adminOnly: true },
+    { text: 'Categories', icon: <Category fontSize="small" />, path: '/categories', color: '#2196f3', adminOnly: false },
+    { text: 'Department', icon: <GroupWork fontSize="small" />, path: '/department', color: '#2196f3', adminOnly: false },
+    { text: 'Branches', icon: <LocationOn fontSize="small" />, path: '/branches', color: '#2196f3', adminOnly: false },
+    { text: 'Holiday', icon: <Event fontSize="small" />, path: '/holiday', color: '#2196f3', adminOnly: false },
+    { text: 'Billing', icon: <Receipt fontSize="small" />, path: '/billing', color: '#2196f3', adminOnly: false },
+    { text: 'Company Profile', icon: <AccountBalance fontSize="small" />, path: '/company-profile', color: '#2196f3', adminOnly: false },
+  ].filter(item => !item.adminOnly || currentUser?.role === 'admin');
 
   const drawer = (
     <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', background: '#2a2a2a' }}>
