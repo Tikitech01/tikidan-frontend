@@ -285,20 +285,22 @@ const Employees: React.FC = () => {
                     },
                   }}
                 >
-                  <TableCell sx={{ py: 3 }}>
+                  <TableCell sx={{ py: 1.5 }}>
                     <Box>
                       <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#2c3e50', mb: 0.5, fontSize: '0.95rem' }}>
                         {employee.name}
                       </Typography>
-                      <Typography variant="caption" sx={{ color: '#7f8c8d', display: 'block', mb: 0.3, fontSize: '0.8rem' }}>
-                        {employee.role}
-                      </Typography>
-                      <Typography variant="caption" sx={{ color: '#95a5a6', fontSize: '0.75rem' }}>
-                        Reports to: {employee.reportingTo}
-                      </Typography>
+                      <Box sx={{ lineHeight: 0.8 }}>
+                        <Typography variant="caption" sx={{ color: '#7f8c8d', display: 'block', mb: 0, fontSize: '0.8rem', lineHeight: 1 }}>
+                          {employee.role}
+                        </Typography>
+                        <Typography variant="caption" sx={{ color: '#95a5a6', fontSize: '0.75rem', lineHeight: 1, mt: -0.2 }}>
+                          Reports to: {employee.reportingTo}
+                        </Typography>
+                      </Box>
                     </Box>
                   </TableCell>
-                  <TableCell sx={{ py: 3 }}>
+                  <TableCell sx={{ py: 1.5 }}>
                     <Chip
                       label={employee.status}
                       size="small"
@@ -313,17 +315,17 @@ const Employees: React.FC = () => {
                       }}
                     />
                   </TableCell>
-                  <TableCell sx={{ py: 3 }}>
+                  <TableCell sx={{ py: 1.5 }}>
                     <Typography variant="body2" sx={{ fontWeight: 600, color: '#2c3e50', fontSize: '0.9rem' }}>
                       {employee.allMeetings}
                     </Typography>
                   </TableCell>
-                  <TableCell sx={{ py: 3 }}>
+                  <TableCell sx={{ py: 1.5 }}>
                     <Typography variant="body2" sx={{ color: '#7f8c8d', fontSize: '0.9rem' }}>
                       {employee.mostVisitedCategory}
                     </Typography>
                   </TableCell>
-                  <TableCell sx={{ py: 3 }}>
+                  <TableCell sx={{ py: 1.5 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       <PhoneIcon sx={{ fontSize: 18, color: '#95a5a6' }} />
                       <Typography variant="body2" sx={{ color: '#7f8c8d', fontSize: '0.9rem' }}>
@@ -331,7 +333,7 @@ const Employees: React.FC = () => {
                       </Typography>
                     </Box>
                   </TableCell>
-                  <TableCell align="center" sx={{ py: 3 }}>
+                  <TableCell align="center" sx={{ py: 1.5 }}>
                     <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center' }}>
                       <Tooltip title="Edit">
                         <IconButton
