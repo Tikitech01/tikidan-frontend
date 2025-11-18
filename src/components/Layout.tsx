@@ -18,6 +18,8 @@ import {
   alpha,
   Menu,
   MenuItem,
+  TextField,
+  InputAdornment,
 } from '@mui/material';
 import {
   Menu as MenuIcon,
@@ -30,9 +32,19 @@ import {
   GroupWork,
   Settings,
   Logout,
+  Search,
+  Business,
+  Schedule,
+  Badge,
+  Category,
+  BusinessCenter,
+  LocationOn,
+  Event,
+  Receipt,
+  AccountBalance,
 } from '@mui/icons-material';
 
-const drawerWidth = 240;
+const drawerWidth = 200;
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -77,6 +89,18 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     { text: 'Leave Settings', icon: <Settings fontSize="small" />, path: '/leave-settings' },
   ];
 
+  const companyMenuItems = [
+    { text: 'Company', icon: <Business fontSize="small" />, path: '/company' },
+    { text: 'Attendance', icon: <Schedule fontSize="small" />, path: '/attendance' },
+    { text: 'Employees', icon: <Badge fontSize="small" />, path: '/employees' },
+    { text: 'Categories', icon: <Category fontSize="small" />, path: '/categories' },
+    { text: 'Department', icon: <GroupWork fontSize="small" />, path: '/department' },
+    { text: 'Branches', icon: <LocationOn fontSize="small" />, path: '/branches' },
+    { text: 'Holiday', icon: <Event fontSize="small" />, path: '/holiday' },
+    { text: 'Billing', icon: <Receipt fontSize="small" />, path: '/billing' },
+    { text: 'Company Profile', icon: <AccountBalance fontSize="small" />, path: '/company-profile' },
+  ];
+
   const drawer = (
     <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       {/* Header */}
@@ -93,11 +117,11 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       >
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
           <img
-            src="/logo.svg"
+            src="/logo.png"
             alt="Logo"
             style={{
-              width: 32,
-              height: 32,
+              width: 24,
+              height: 24,
               borderRadius: 4,
             }}
           />
@@ -112,10 +136,141 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         </Box>
       </Box>
 
-      {/* Navigation */}
-      <Box 
-        sx={{ 
-          flexGrow: 1, 
+      {/* Content Area - Main Menu + Company */}
+      <Box
+        sx={{
+          flexGrow: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'auto',
+        }}
+      >
+        {/* Main Menu Section */}
+        <Box
+          sx={{
+            p: 0.5,
+            background: 'linear-gradient(180deg, #2a2a2a 0%, #333333 100%)',
+          }}
+        >
+          <Typography
+            variant="overline"
+            sx={{
+              color: 'rgba(255, 255, 255, 0.6)',
+              fontSize: '0.5rem',
+              fontWeight: 600,
+              letterSpacing: 0.5,
+              mb: 0.15,
+              ml: 1,
+            }}
+          >
+            MAIN MENU
+          </Typography>
+          <List sx={{ p: 0 }}>
+            {menuItems.map((item) => (
+              <ListItem key={item.text} disablePadding sx={{ mb: 0.02 }}>
+                <ListItemButton
+                  selected={location.pathname === item.path || (location.pathname === '/' && item.path === '/reports')}
+                  onClick={() => navigate(item.path)}
+                  sx={{
+                    borderRadius: 1,
+                    py: 0.2,
+                    px: 0.8,
+                    backgroundColor: 'transparent',
+                    '&.Mui-selected': {
+                      background: `linear-gradient(135deg, ${alpha(item.color, 0.2)} 0%, ${alpha(item.color, 0.1)} 100%)`,
+                      borderLeft: `3px solid ${item.color}`,
+                      '&:hover': {
+                        background: `linear-gradient(135deg, ${alpha(item.color, 0.25)} 0%, ${alpha(item.color, 0.15)} 100%)`,
+                      },
+                    },
+                    '&:hover': {
+                      backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                    },
+                  }}
+                >
+                  <ListItemIcon
+                    sx={{
+                      color: (location.pathname === item.path || (location.pathname === '/' && item.path === '/reports')) ? item.color : 'rgba(255, 255, 255, 0.7)',
+                      minWidth: 24,
+                    }}
+                  >
+                    {item.icon}
+                  </ListItemIcon>
+                  <ListItemText
+                    primary={item.text}
+                    primaryTypographyProps={{
+                      fontSize: '0.65rem',
+                      fontWeight: (location.pathname === item.path || (location.pathname === '/' && item.path === '/reports')) ? 600 : 400,
+                      color: (location.pathname === item.path || (location.pathname === '/' && item.path === '/reports')) ? item.color : 'rgba(255, 255, 255, 0.9)',
+                    }}
+                  />
+                </ListItemButton>
+              </ListItem>
+            ))}
+          </List>
+        </Box>
+
+        {/* Company Menu Section */}
+        <Box
+          sx={{
+            p: 0.5,
+            background: 'linear-gradient(180deg, #2a2a2a 0%, #333333 100%)',
+          }}
+        >
+          <Typography
+            variant="overline"
+            sx={{
+              color: 'rgba(255, 255, 255, 0.6)',
+              fontSize: '0.5rem',
+              fontWeight: 600,
+              letterSpacing: 0.5,
+              mb: 0.15,
+              ml: 1,
+            }}
+          >
+            COMPANY
+          </Typography>
+          <List sx={{ p: 0 }}>
+            {companyMenuItems.map((item) => (
+              <ListItem key={item.text} disablePadding sx={{ mb: 0.02 }}>
+                <ListItemButton
+                  selected={location.pathname === item.path}
+                  onClick={() => navigate(item.path)}
+                  sx={{
+                    borderRadius: 1,
+                    py: 0.2,
+                    px: 0.8,
+                    backgroundColor: 'transparent',
+                    '&.Mui-selected': {
+                      background: `linear-gradient(135deg, rgba(33, 150, 243, 0.2) 0%, rgba(33, 150, 243, 0.1) 100%)`,
+                      borderLeft: `3px solid #2196f3`,
+                      '&:hover': {
+                        background: `linear-gradient(135deg, rgba(33, 150, 243, 0.25) 0%, rgba(33, 150, 243, 0.15) 100%)`,
+                      },
+                    },
+                    '&:hover': {
+                      backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                    },
+                  }}
+                >
+                  <ListItemIcon sx={{ color: location.pathname === item.path ? '#2196f3' : 'rgba(255, 255, 255, 0.7)', minWidth: 24 }}>
+                    {item.icon}
+                  </ListItemIcon>
+                  <ListItemText
+                    primary={item.text}
+                    primaryTypographyProps={{ fontSize: '0.65rem', fontWeight: location.pathname === item.path ? 600 : 400, color: location.pathname === item.path ? '#2196f3' : 'rgba(255, 255, 255, 0.9)' }}
+                  />
+                </ListItemButton>
+              </ListItem>
+            ))}
+          </List>
+        </Box>
+      </Box>
+
+      {/* Footer - My Account - Fixed at bottom */}
+      <Box
+        sx={{
+          flexGrow: 0,
           p: 0.5,
           background: 'linear-gradient(180deg, #2a2a2a 0%, #333333 100%)',
         }}
@@ -124,77 +279,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           variant="overline"
           sx={{
             color: 'rgba(255, 255, 255, 0.6)',
-            fontSize: '0.6rem',
+            fontSize: '0.5rem',
             fontWeight: 600,
             letterSpacing: 0.5,
-            mb: 0.25,
-            ml: 1,
-          }}
-        >
-          MAIN MENU
-        </Typography>
-        <List sx={{ p: 0 }}>
-          {menuItems.map((item) => (
-            <ListItem key={item.text} disablePadding sx={{ mb: 0.1 }}>
-              <ListItemButton
-                selected={location.pathname === item.path || (location.pathname === '/' && item.path === '/reports')}
-                onClick={() => navigate(item.path)}
-                sx={{
-                  borderRadius: 1,
-                  py: 0.5,
-                  px: 1.5,
-                  backgroundColor: 'transparent',
-                  '&.Mui-selected': {
-                    background: `linear-gradient(135deg, ${alpha(item.color, 0.2)} 0%, ${alpha(item.color, 0.1)} 100%)`,
-                    borderLeft: `3px solid ${item.color}`,
-                    '&:hover': {
-                      background: `linear-gradient(135deg, ${alpha(item.color, 0.25)} 0%, ${alpha(item.color, 0.15)} 100%)`,
-                    },
-                  },
-                  '&:hover': {
-                    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                  },
-                }}
-              >
-                <ListItemIcon
-                  sx={{
-                    color: (location.pathname === item.path || (location.pathname === '/' && item.path === '/reports')) ? item.color : 'rgba(255, 255, 255, 0.7)',
-                    minWidth: 32,
-                  }}
-                >
-                  {item.icon}
-                </ListItemIcon>
-                <ListItemText
-                  primary={item.text}
-                  primaryTypographyProps={{
-                    fontSize: '0.8rem',
-                    fontWeight: (location.pathname === item.path || (location.pathname === '/' && item.path === '/reports')) ? 600 : 400,
-                    color: (location.pathname === item.path || (location.pathname === '/' && item.path === '/reports')) ? item.color : 'rgba(255, 255, 255, 0.9)',
-                  }}
-                />
-              </ListItemButton>
-            </ListItem>
-          ))}
-        </List>
-      </Box>
-
-      <Divider sx={{ borderColor: 'rgba(255, 255, 255, 0.1)' }} />
-
-      {/* Footer - My Account */}
-      <Box 
-        sx={{ 
-          p: 0.5,
-          background: 'linear-gradient(180deg, #333333 0%, #2a2a2a 100%)',
-        }}
-      >
-        <Typography
-          variant="overline"
-          sx={{
-            color: 'rgba(255, 255, 255, 0.6)',
-            fontSize: '0.6rem',
-            fontWeight: 600,
-            letterSpacing: 0.5,
-            mb: 0.25,
+            mb: 0.15,
             ml: 1,
           }}
         >
@@ -202,24 +290,25 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         </Typography>
         <List sx={{ p: 0 }}>
           {accountMenuItems.map((item) => (
-            <ListItem key={item.text} disablePadding sx={{ mb: 0.1 }}>
+            <ListItem key={item.text} disablePadding sx={{ mb: 0.02 }}>
               <ListItemButton
                 onClick={() => navigate(item.path)}
                 sx={{
                   borderRadius: 1,
-                  py: 0.5,
-                  px: 1.5,
+                  py: 0.2,
+                  px: 0.8,
+                  backgroundColor: 'transparent',
                   '&:hover': {
                     backgroundColor: 'rgba(255, 255, 255, 0.05)',
                   },
                 }}
               >
-                <ListItemIcon sx={{ color: 'rgba(255, 255, 255, 0.7)', minWidth: 32 }}>
+                <ListItemIcon sx={{ color: 'rgba(255, 255, 255, 0.7)', minWidth: 24 }}>
                   {item.icon}
                 </ListItemIcon>
                 <ListItemText
                   primary={item.text}
-                  primaryTypographyProps={{ fontSize: '0.8rem', fontWeight: 400, color: 'rgba(255, 255, 255, 0.9)' }}
+                  primaryTypographyProps={{ fontSize: '0.65rem', fontWeight: 400, color: 'rgba(255, 255, 255, 0.9)' }}
                 />
               </ListItemButton>
             </ListItem>
@@ -258,20 +347,48 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             <MenuIcon fontSize="small" />
           </IconButton>
           
-          <Typography
-            variant="h6"
-            noWrap
-            component="div"
-            sx={{
-              fontWeight: 600,
-              fontSize: '1.1rem',
-              color: 'white',
-            }}
-          >
-            Dashboard
-          </Typography>
+          <Box sx={{ flexGrow: -0.5 }} />
           
-          <Box sx={{ flexGrow: 1 }} />
+          <TextField
+            variant="outlined"
+            size="small"
+            placeholder="Type Employee or Client Name"
+            sx={{
+              mx: 2,
+              '& .MuiOutlinedInput-root': {
+                backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                borderRadius: '25px',
+                '& fieldset': {
+                  borderColor: 'rgba(255, 255, 255, 0.3)',
+                },
+                '&:hover fieldset': {
+                  borderColor: 'rgba(255, 255, 255, 0.5)',
+                },
+                '&.Mui-focused fieldset': {
+                  borderColor: 'rgba(255, 255, 255, 0.8)',
+                },
+              },
+              '& .MuiInputBase-input': {
+                color: 'white',
+                fontSize: '0.775rem',
+                '&::placeholder': {
+                  color: 'rgba(255, 255, 255, 0.7)',
+                  opacity: 1,
+                },
+              },
+              minWidth: 450,
+              width: '40rem',
+            }}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <Search sx={{ color: 'rgba(255, 255, 255, 0.7)' }} />
+                </InputAdornment>
+              ),
+            }}
+          />
+          
+          <Box sx={{ flexGrow: 1.5 }} />
           
           {/* User Profile with Dropdown */}
           <IconButton
