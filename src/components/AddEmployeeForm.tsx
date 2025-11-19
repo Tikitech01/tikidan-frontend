@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   TextField,
@@ -9,6 +9,10 @@ import {
   Select,
   Typography,
   Paper,
+  Checkbox,
+  ListItemText,
+  OutlinedInput,
+  Chip,
 } from '@mui/material';
 import {
   Save as SaveIcon,
@@ -61,6 +65,11 @@ const ROLE_OPTIONS = [
   { value: 'user', label: 'User' },
 ];
 
+interface Permission {
+  value: string;
+  label: string;
+}
+
 interface EmployeeFormData {
   reporting: string;
   department: string;
@@ -77,11 +86,19 @@ interface EmployeeFormData {
   city: string;
   state: string;
   country: string;
+  customPermissions: string[];
 }
 
-const AddEmployeeForm: React.FC<{ onClose: () => void; onSave?: (data: EmployeeFormData) => void }> = ({ 
+interface AddEmployeeFormProps {
+  onClose: () => void;
+  onSave?: (data: EmployeeFormData) => void;
+  employeeId?: string; // If provided, form is in edit mode
+}
+
+const AddEmployeeForm: React.FC<AddEmployeeFormProps> = ({ 
   onClose, 
-  onSave 
+  onSave,
+  employeeId 
 }) => {
   const [formData, setFormData] = useState<EmployeeFormData>({
     reporting: '',
@@ -99,10 +116,78 @@ const AddEmployeeForm: React.FC<{ onClose: () => void; onSave?: (data: EmployeeF
     city: '',
     state: '',
     country: '',
+    customPermissions: [],
   });
 
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [availablePermissions, setAvailablePermissions] = useState<Permission[]>([]);
+
+  // Fetch available permissions on component mount
+  useEffect(() => {
+    const fetchPermissions = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch('http://localhost:5000/api/auth/available-permissions', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          setAvailablePermissions(data.permissions);
+        }
+      } catch (error) {
+        console.error('Error fetching permissions:', error);
+      }
+    };
+
+    fetchPermissions();
+  }, []);
+
+  // Fetch employee data if in edit mode
+  useEffect(() => {
+    if (employeeId) {
+      const fetchEmployeeData = async () => {
+        try {
+          const token = localStorage.getItem('token');
+          const response = await fetch(`http://localhost:5000/api/auth/employees/${employeeId}`, {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+            },
+          });
+          
+          if (response.ok) {
+            const data = await response.json();
+            const employee = data.employee;
+            setFormData({
+              reporting: employee.reporting || '',
+              department: employee.department || '',
+              employeeId: employee.employeeId || '',
+              firstName: employee.firstName || '',
+              lastName: employee.lastName || '',
+              designation: employee.designation || '',
+              email: employee.email || '',
+              mobile: employee.mobile || '',
+              password: '', // Don't populate password for security
+              role: employee.role || '',
+              addressLine1: employee.addressLine1 || '',
+              addressLine2: employee.addressLine2 || '',
+              city: employee.city || '',
+              state: employee.state || '',
+              country: employee.country || '',
+              customPermissions: employee.customPermissions || [],
+            });
+          }
+        } catch (error) {
+          console.error('Error fetching employee data:', error);
+        }
+      };
+
+      fetchEmployeeData();
+    }
+  }, [employeeId]);
 
   const handleInputChange = (field: keyof EmployeeFormData) => (
     event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -116,10 +201,50 @@ const AddEmployeeForm: React.FC<{ onClose: () => void; onSave?: (data: EmployeeF
   const handleSelectChange = (field: keyof EmployeeFormData) => (
     event: any
   ) => {
-    setFormData({ ...formData, [field]: event.target.value });
+    const value = event.target.value;
+    setFormData({ ...formData, [field]: value });
     if (errors[field]) {
       setErrors({ ...errors, [field]: '' });
     }
+    
+    // Auto-populate permissions when role is selected
+    if (field === 'role' && value) {
+      fetchRolePermissions(value);
+    }
+  };
+
+  // Fetch role-based permissions and auto-populate
+  const fetchRolePermissions = async (role: string) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`http://localhost:5000/api/roles/role-permissions/${role}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Fetched role permissions:', data);
+        // Auto-populate with role's default permissions
+        setFormData(prev => ({
+          ...prev,
+          customPermissions: data.permissions || []
+        }));
+      } else {
+        console.error('Failed to fetch role permissions:', response.status);
+      }
+    } catch (error) {
+      console.error('Error fetching role permissions:', error);
+    }
+  };
+
+  const handlePermissionChange = (event: any) => {
+    const value = event.target.value;
+    setFormData({
+      ...formData,
+      customPermissions: typeof value === 'string' ? value.split(',') : value
+    });
   };
 
   const validateForm = (): boolean => {
@@ -131,10 +256,13 @@ const AddEmployeeForm: React.FC<{ onClose: () => void; onSave?: (data: EmployeeF
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       newErrors.email = 'Invalid email format';
     }
-    if (!formData.password.trim()) {
-      newErrors.password = 'Password is required';
-    } else if (formData.password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters';
+    // Password is only required when creating new employee
+    if (!employeeId) {
+      if (!formData.password.trim()) {
+        newErrors.password = 'Password is required';
+      } else if (formData.password.length < 6) {
+        newErrors.password = 'Password must be at least 6 characters';
+      }
     }
     if (!formData.role) newErrors.role = 'Role is required';
 
@@ -152,11 +280,21 @@ const AddEmployeeForm: React.FC<{ onClose: () => void; onSave?: (data: EmployeeF
     setIsSubmitting(true);
     
     try {
-      // Call the backend API to register employee
-      const response = await fetch('http://localhost:5000/api/auth/register-employee', {
-        method: 'POST',
+      const token = localStorage.getItem('token');
+      
+      // Determine if we're creating or updating
+      const url = employeeId 
+        ? `http://localhost:5000/api/auth/employees/${employeeId}`
+        : 'http://localhost:5000/api/auth/register-employee';
+      
+      const method = employeeId ? 'PUT' : 'POST';
+      
+      // Call the backend API to register/update employee
+      const response = await fetch(url, {
+        method: method,
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify({
           firstName: formData.firstName,
@@ -174,17 +312,18 @@ const AddEmployeeForm: React.FC<{ onClose: () => void; onSave?: (data: EmployeeF
           city: formData.city,
           state: formData.state,
           country: formData.country,
+          customPermissions: formData.customPermissions,
         }),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || 'Failed to create employee');
+        throw new Error(data.message || `Failed to ${employeeId ? 'update' : 'create'} employee`);
       }
 
-      console.log('Employee created successfully:', data);
-      alert(`Employee created successfully! They can now login with email: ${formData.email}`);
+      console.log(`Employee ${employeeId ? 'updated' : 'created'} successfully:`, data);
+      alert(`Employee ${employeeId ? 'updated' : 'created'} successfully!${!employeeId ? ` They can now login with email: ${formData.email}` : ''}`);
       
       if (onSave) {
         onSave(formData);
@@ -202,7 +341,7 @@ const AddEmployeeForm: React.FC<{ onClose: () => void; onSave?: (data: EmployeeF
   return (
     <Box component="form" onSubmit={handleSubmit} sx={{ p: 3 }}>
       <Typography variant="h6" sx={{ mb: 3, fontWeight: 600 }}>
-        Add New Employee
+        {employeeId ? 'Edit Employee' : 'Add New Employee'}
       </Typography>
 
       <Paper elevation={1} sx={{ p: 3, mb: 3 }}>
@@ -351,6 +490,41 @@ const AddEmployeeForm: React.FC<{ onClose: () => void; onSave?: (data: EmployeeF
                 </Typography>
               )}
             </FormControl>
+
+            {/* Custom Permissions */}
+            <FormControl fullWidth>
+              <InputLabel>Custom Permissions</InputLabel>
+              <Select
+                multiple
+                value={formData.customPermissions}
+                onChange={handlePermissionChange}
+                input={<OutlinedInput label="Custom Permissions" />}
+                renderValue={(selected) => (
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                    {selected.map((value) => {
+                      const permission = availablePermissions.find(p => p.value === value);
+                      return (
+                        <Chip
+                          key={value}
+                          label={permission?.label || value}
+                          size="small"
+                        />
+                      );
+                    })}
+                  </Box>
+                )}
+              >
+                {availablePermissions.map((permission) => (
+                  <MenuItem key={permission.value} value={permission.value}>
+                    <Checkbox checked={formData.customPermissions.indexOf(permission.value) > -1} />
+                    <ListItemText primary={permission.label} />
+                  </MenuItem>
+                ))}
+              </Select>
+              <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5 }}>
+                Select specific routes/permissions for this employee. If none selected, role-based permissions will be used.
+              </Typography>
+            </FormControl>
           </Box>
 
           {/* Right Column */}
@@ -427,7 +601,7 @@ const AddEmployeeForm: React.FC<{ onClose: () => void; onSave?: (data: EmployeeF
           startIcon={<SaveIcon />}
           disabled={isSubmitting}
         >
-          {isSubmitting ? 'Saving...' : 'Save Employee'}
+          {isSubmitting ? 'Saving...' : (employeeId ? 'Update Employee' : 'Save Employee')}
         </Button>
       </Box>
     </Box>

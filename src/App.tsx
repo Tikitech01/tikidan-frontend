@@ -17,6 +17,19 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   return token ? <>{children}</> : <Navigate to="/login" replace />;
 };
 
+// Reports/Dashboard Route Component - Handles role-based routing
+const ReportsRoute = () => {
+  const userData = localStorage.getItem('user');
+  if (userData) {
+    const user = JSON.parse(userData);
+    // Non-admin users should be redirected to dashboard
+    if (user.role !== 'admin') {
+      return <Navigate to="/dashboard" replace />;
+    }
+  }
+  return <Reports />;
+};
+
 function App() {
   return (
     <Router>
@@ -33,7 +46,8 @@ function App() {
               <Layout>
                 <Routes>
                   {/* Main Menu */}
-                  <Route path="/reports" element={<Reports />} />
+                  <Route path="/reports" element={<ReportsRoute />} />
+                  <Route path="/dashboard" element={<Reports />} />
                   <Route path="/team" element={<Team />} />
                   <Route path="/projects" element={<Projects />} />
                   <Route path="/clients" element={<Clients />} />
@@ -51,7 +65,6 @@ function App() {
                   <Route path="/expense-settings" element={<PlaceholderPage />} />
                   
                   {/* Company Menu */}
-                  <Route path="/company" element={<PlaceholderPage />} />
                   <Route path="/attendance" element={<PlaceholderPage />} />
                   <Route path="/employees" element={<Employees />} />
                   <Route path="/categories" element={<PlaceholderPage />} />

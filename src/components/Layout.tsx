@@ -67,11 +67,16 @@ const getIconForMenuItem = (menuItem: string, color: string = '#2196f3') => {
     'projects': <WorkIcon fontSize="small" />,
     'clients': <PeopleIcon fontSize="small" />,
     'meetings': <CalendarMonth fontSize="small" />,
-    'expenses': <AttachMoney fontSize="small" />,
+    'expenses_view': <AttachMoney fontSize="small" />,
+    'expenses_create': <AttachMoney fontSize="small" />,
+    'expenses_review': <RateReview fontSize="small" />,
+    'expenses_manage': <Category fontSize="small" />,
+    'expenses_settings': <Settings fontSize="small" />,
+    'expenses_reports': <Assessment fontSize="small" />,
     'profile': <Person fontSize="small" />,
     'my_leaves': <CalendarMonth fontSize="small" />,
     'team': <GroupIcon fontSize="small" />,
-    'company': <Business fontSize="small" />,
+    'company_profile': <Business fontSize="small" />,
     'attendance': <Schedule fontSize="small" />,
     'employees': <Badge fontSize="small" />,
     'categories': <Category fontSize="small" />,
@@ -125,7 +130,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         
         // If user has permissions in localStorage, use them; otherwise fetch from backend
         if (user.permissions) {
-          const generatedMenus = generateMenuItems(user.permissions);
+          const generatedMenus = generateMenuItems(user.permissions, user.role);
           setMenuItems({
             mainMenu: generatedMenus.mainMenu.map(formatMenuItem),
             expensesMenu: generatedMenus.expensesMenu.map(formatMenuItem),
@@ -137,7 +142,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           fetchUserPermissions().then((permissions) => {
             if (permissions) {
               setUserPermissions(permissions);
-              const generatedMenus = generateMenuItems(permissions.permissions);
+              const generatedMenus = generateMenuItems(permissions.permissions, user.role);
               setMenuItems({
                 mainMenu: generatedMenus.mainMenu.map(formatMenuItem),
                 expensesMenu: generatedMenus.expensesMenu.map(formatMenuItem),
@@ -289,13 +294,16 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 ml: 1,
               }}
             >
-              MAIN MENU
+              MEETING
             </Typography>
             <List sx={{ p: 0 }}>
               {menuItems.mainMenu.map((item) => (
                 <ListItem key={item.text} disablePadding sx={{ mb: 0.02 }}>
                   <ListItemButton
-                    selected={location.pathname === item.path || (location.pathname === '/' && item.path === '/reports')}
+                    selected={location.pathname === item.path || 
+                             (location.pathname === '/' && (item.path === '/reports' || item.path === '/dashboard')) ||
+                             (location.pathname === '/dashboard' && item.path === '/dashboard') ||
+                             (location.pathname === '/reports' && item.path === '/reports')}
                     onClick={() => navigate(item.path)}
                     sx={{
                       borderRadius: 1,
@@ -316,7 +324,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                   >
                     <ListItemIcon
                       sx={{
-                        color: (location.pathname === item.path || (location.pathname === '/' && item.path === '/reports')) ? item.color : 'rgba(255, 255, 255, 0.7)',
+                        color: (location.pathname === item.path || 
+                               (location.pathname === '/' && (item.path === '/reports' || item.path === '/dashboard')) ||
+                               (location.pathname === '/dashboard' && item.path === '/dashboard') ||
+                               (location.pathname === '/reports' && item.path === '/reports')) ? item.color : 'rgba(255, 255, 255, 0.7)',
                         minWidth: 24,
                       }}
                     >
@@ -326,8 +337,14 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                       primary={item.text}
                       primaryTypographyProps={{
                         fontSize: '0.825rem',
-                        fontWeight: (location.pathname === item.path || (location.pathname === '/' && item.path === '/reports')) ? 600 : 400,
-                        color: (location.pathname === item.path || (location.pathname === '/' && item.path === '/reports')) ? item.color : 'rgba(255, 255, 255, 0.9)',
+                        fontWeight: (location.pathname === item.path || 
+                                   (location.pathname === '/' && (item.path === '/reports' || item.path === '/dashboard')) ||
+                                   (location.pathname === '/dashboard' && item.path === '/dashboard') ||
+                                   (location.pathname === '/reports' && item.path === '/reports')) ? 600 : 400,
+                        color: (location.pathname === item.path || 
+                               (location.pathname === '/' && (item.path === '/reports' || item.path === '/dashboard')) ||
+                               (location.pathname === '/dashboard' && item.path === '/dashboard') ||
+                               (location.pathname === '/reports' && item.path === '/reports')) ? item.color : 'rgba(255, 255, 255, 0.9)',
                       }}
                     />
                   </ListItemButton>

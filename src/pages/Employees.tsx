@@ -56,6 +56,7 @@ const Employees: React.FC = () => {
   const [sortField, setSortField] = useState<keyof Employee>('name');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [openAddDialog, setOpenAddDialog] = useState(false);
+  const [editingEmployeeId, setEditingEmployeeId] = useState<string | undefined>(undefined);
 
   // Fetch employees from backend
   React.useEffect(() => {
@@ -151,6 +152,7 @@ const Employees: React.FC = () => {
 
   const handleCloseAddDialog = () => {
     setOpenAddDialog(false);
+    setEditingEmployeeId(undefined);
   };
 
   const handleDeleteEmployee = async (id: string) => {
@@ -188,8 +190,9 @@ const Employees: React.FC = () => {
   };
 
   const handleEditEmployee = (id: string) => {
-    // Navigate to edit page or open edit dialog
-    console.log('Edit employee:', id);
+    // Open edit dialog with employee ID
+    setEditingEmployeeId(id);
+    setOpenAddDialog(true);
   };
 
   // Get employee initials for avatar
@@ -422,7 +425,7 @@ const Employees: React.FC = () => {
         )}
       </Paper>
 
-      {/* Add Employee Dialog */}
+      {/* Add/Edit Employee Dialog */}
       <Dialog
         open={openAddDialog}
         onClose={handleCloseAddDialog}
@@ -435,12 +438,13 @@ const Employees: React.FC = () => {
           }
         }}
       >
-        <DialogTitle>Add New Employee</DialogTitle>
+        <DialogTitle>{editingEmployeeId ? 'Edit Employee' : 'Add New Employee'}</DialogTitle>
         <DialogContent>
           <AddEmployeeForm
             onClose={handleCloseAddDialog}
+            employeeId={editingEmployeeId}
             onSave={() => {
-              // Refresh the employee list after adding
+              // Refresh the employee list after adding/editing
               fetchEmployees();
             }}
           />
