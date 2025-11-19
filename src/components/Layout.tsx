@@ -243,8 +243,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               borderRadius: 6,
             }}
           />
-          <Box>
-            <Typography variant="subtitle1" sx={{ fontWeight: 600, fontSize: '0.9rem', lineHeight: 1.1, color: 'white' }}>
+          <Box sx={{ mt: 1, ml: -0.5 }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: 600, fontSize: '0.9rem', lineHeight: 0.9, color: 'white', mb: -0.5 }}>
               Tiki Tar Danosa
             </Typography>
             <Typography variant="caption" sx={{ opacity: 0.8, fontSize: '0.65rem', color: 'rgba(255, 255, 255, 0.7)' }}>
