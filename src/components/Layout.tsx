@@ -226,7 +226,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           height: '64px',
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'center',
           px: 2,
           background: '#1a1a1a',
           color: 'white',
@@ -239,9 +238,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             src="/logo.png"
             alt="Logo"
             style={{
-              width: 24,
-              height: 24,
-              borderRadius: 4,
+              width: 40,
+              height: 40,
+              borderRadius: 6,
             }}
           />
           <Box>
