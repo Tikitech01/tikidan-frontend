@@ -10,15 +10,13 @@ const Footer: React.FC = () => {
         backgroundColor: '#ffffff',
         borderTop: '2px solid #dee2e6',
         padding: '1rem 1.5rem',
-        marginTop: 'auto',
         width: '100%',
         height: '60px',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        position: 'relative',
-        zIndex: 100,
-        boxShadow: '0 -2px 4px rgba(0,0,0,0.1)'
+        boxShadow: '0 -2px 4px rgba(0,0,0,0.1)',
+        marginTop: '2rem'
       }}
     >
       <div style={{ color: '#495057', fontSize: '0.875rem', fontWeight: '500' }}>

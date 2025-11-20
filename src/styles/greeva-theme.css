@@ -908,7 +908,6 @@ html, body {
   background: #ffffff !important;
   border-top: 2px solid #dee2e6 !important;
   padding: 1rem 1.5rem !important;
-  margin-top: auto !important;
   width: 100% !important;
   position: relative !important;
   z-index: 100 !important;
@@ -917,6 +916,7 @@ html, body {
   display: flex !important;
   align-items: center !important;
   justify-content: space-between !important;
+  margin-top: 2rem !important;
 }
 
 .footer-text {
