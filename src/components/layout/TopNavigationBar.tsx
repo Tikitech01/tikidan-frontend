@@ -84,33 +84,26 @@ const TopNavigationBar: React.FC = () => {
     setSearchQuery(e.target.value);
   };
 
-  // Ensure header stays fixed
+  // Ensure header stays static (no fixed positioning)
   useEffect(() => {
-    const ensureFixedHeader = () => {
+    const ensureStaticHeader = () => {
       const navbar = document.querySelector('.topnavbar') as HTMLElement;
       if (navbar) {
-        navbar.style.position = 'fixed';
-        navbar.style.top = '0';
-        navbar.style.left = '0';
-        navbar.style.right = '0';
-        navbar.style.zIndex = '1050';
+        navbar.style.position = 'relative';
+        navbar.style.top = 'auto';
+        navbar.style.left = 'auto';
+        navbar.style.right = 'auto';
+        navbar.style.zIndex = 'auto';
         navbar.style.width = '100%';
         navbar.style.height = '64px';
       }
     };
 
-    ensureFixedHeader();
-    const timeoutId = setTimeout(ensureFixedHeader, 100);
-    
-    const handleScroll = () => {
-      ensureFixedHeader();
-    };
-    
-    window.addEventListener('scroll', handleScroll);
+    ensureStaticHeader();
+    const timeoutId = setTimeout(ensureStaticHeader, 100);
     
     return () => {
       clearTimeout(timeoutId);
-      window.removeEventListener('scroll', handleScroll);
     };
   }, []);
 
@@ -187,7 +180,7 @@ const TopNavigationBar: React.FC = () => {
                       backgroundColor: '#f3f4f6',
                       color: '#374151',
                       fontWeight: '400',
-                      padding: '0.7rem 1rem 0.7rem 2.5rem',
+                      padding: '0.45rem 1rem 0.45rem 2.5rem',
                       fontSize: '0.875rem',
                       width: '100%',
                       transition: 'all 0.2s ease',
@@ -238,7 +231,7 @@ const TopNavigationBar: React.FC = () => {
                       backgroundColor: '#f3f4f6',
                       color: '#374151',
                       fontWeight: '400',
-                      padding: '0.7rem 1rem 0.7rem 2.5rem',
+                      padding: '0.45rem 1rem 0.45rem 2.5rem',
                       fontSize: '0.875rem',
                       width: '100%',
                       transition: 'all 0.2s ease',

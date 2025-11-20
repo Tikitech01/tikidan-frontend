@@ -55,13 +55,13 @@ body {
   overflow-x: hidden;
 }
 
-/* Top Navigation Bar - Ultra-force fixed positioning */
+/* Top Navigation Bar - Static positioning */
 .topnavbar {
-  position: fixed !important;
+  position: relative !important;
   top: 0 !important;
   left: 0 !important;
   right: 0 !important;
-  z-index: 9999 !important;
+  z-index: 1 !important;
   border-bottom: 1px solid var(--greeva-border-color);
   background: linear-gradient(135deg, #e5e7eb 0%, #d1d5db 100%) !important;
   height: 64px !important;
@@ -81,7 +81,7 @@ body {
 /* Create shadow that only appears on main content area (after sidebar) */
 .topnavbar::after {
   content: '';
-  position: fixed;
+  position: absolute;
   top: 63px; /* Just below the header */
   left: 260px; /* Start after sidebar width */
   right: 0;
@@ -101,20 +101,23 @@ body {
 }
 
 .navbar-expand-lg {
-  position: fixed !important;
+  position: relative !important;
 }
 
 /* Force body and html positioning */
 html, body {
   overflow-x: hidden;
   position: relative;
+  height: 100%;
+  margin: 0;
+  padding: 0;
 }
 
 /* Prevent scrolling issues */
 .wrapper {
   position: relative;
   overflow-x: hidden;
-  overflow-y: visible;
+  height: 100vh;
 }
 
 /* Ensure no transform properties interfere */
@@ -304,75 +307,48 @@ html, body {
   font-weight: 600;
   letter-spacing: 1px;
   text-transform: uppercase;
-  padding: 0 20px 16px 20px;
-  margin-bottom: 8px;
+  padding: 0 8px 0px 8px;
+  margin-bottom: -12px;
   position: relative;
   opacity: 0.8;
   transition: all 0.3s ease;
 }
 
 .nav-section-title::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 20px;
-  right: 20px;
-  height: 2px;
-  background: linear-gradient(90deg, #6b7280 0%, rgba(107, 114, 128, 0.3) 50%, transparent 100%);
-  border-radius: 1px;
-  transition: all 0.3s ease;
+  content: none;
 }
 
 /* Section hover effect */
 .nav-section-title:hover::after {
-  background: linear-gradient(90deg, #6b7280 0%, rgba(107, 114, 128, 0.6) 100%);
-  box-shadow: 0 2px 8px rgba(107, 114, 128, 0.3);
+  background: linear-gradient(90deg, #6b7280 0%, rgba(107, 114, 128, 0.3) 50%, transparent 100%);
+  box-shadow: none;
 }
 
-/* Section separator */
-.nav-section-separator {
-  height: 1px;
-  background: linear-gradient(90deg, transparent 0%, rgba(226, 232, 240, 0.8) 20%, rgba(226, 232, 240, 0.8) 80%, transparent 100%);
-  margin: 24px 20px;
-  position: relative;
-}
-
-.nav-section-separator::before {
-  content: '';
-  position: absolute;
-  top: -1px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 8px;
-  height: 3px;
-  background: #188ae2;
-  border-radius: 2px;
-  box-shadow: 0 0 6px rgba(24, 138, 226, 0.5);
-}
+/* Section separator - Removed */
 
 /* Enhanced Menu Section Spacing */
 .sidebar-inner > div {
-  margin-bottom: 4px;
-  padding: 0 12px;
+  margin-bottom: -48px;
+  padding: 0 8px;
 }
 
 .sidebar-inner > div:first-child .nav-section-title {
-  padding-top: 0;
+  padding-top: -8px;
 }
 
 .sidebar-inner > div:last-child {
-  margin-bottom: 2px;
+  margin-bottom: -32px;
 }
 
 /* Enhanced Navigation Styles */
 .sidebar .nav-pills .nav-link {
   display: flex;
   align-items: center;
-  padding: 8px 16px;
-  margin: 2px 8px;
+  padding: 2px 8px;
+  margin: 0px 2px;
   color: #4b5563;
   text-decoration: none;
-  border-radius: 10px;
+  border-radius: 8px;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   background: transparent;
   border: 1px solid transparent;
@@ -409,7 +385,7 @@ html, body {
   border-color: rgba(107, 114, 128, 0.25);
   font-weight: 600;
   transform: translateX(2px);
-  box-shadow: 0 4px 15px rgba(107, 114, 128, 0.18);
+  box-shadow: none;
 }
 
 .sidebar .nav-pills .nav-link.active::after {
@@ -452,18 +428,19 @@ html, body {
 
 /* Enhanced Vertical Sidebar */
 .sidebar {
-  position: fixed;
-  top: 64px; /* Height of Bootstrap navbar */
+  position: relative;
+  top: 0;
   bottom: 0;
   left: 0;
   width: 260px;
   background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
   border-right: 1px solid rgba(203, 213, 225, 0.6);
-  z-index: 1040;
+  z-index: 10;
   overflow-y: auto;
   transition: all 0.3s ease;
   box-shadow: 4px 0 20px rgba(0, 0, 0, 0.08);
   backdrop-filter: blur(10px);
+  flex-shrink: 0;
 }
 
 /* Custom scrollbar for sidebar */
@@ -639,20 +616,21 @@ html, body {
   box-shadow: 0 0 6px rgba(24, 138, 226, 0.5);
 }
 
-/* Greeva Sidebar Structure Styling - Fixed Sidebar */
+/* Greeva Sidebar Structure Styling - Relative Sidebar */
 .sidenav-menu {
-  z-index: 1000 !important;
-  position: fixed !important;
-  top: 64px !important; /* Start below header */
+  z-index: 10 !important;
+  position: relative !important;
+  top: 0 !important;
   left: 0 !important;
   width: 260px !important;
-  height: calc(100vh - 64px) !important;
+  height: 100% !important;
   background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%) !important;
   box-shadow: 4px 0 20px rgba(0, 0, 0, 0.08) !important;
   border-right: 1px solid rgba(203, 213, 225, 0.6) !important;
   transition: all 0.3s ease !important;
   overflow-y: auto !important;
   padding: 2px 0 !important;
+  flex-shrink: 0 !important;
 }
 
 .sidenav-menu::-webkit-scrollbar {
@@ -690,15 +668,15 @@ html, body {
 .side-nav-link {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 6px;
   position: relative;
   white-space: nowrap;
   color: #4b5563;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   line-height: 1.2;
   font-size: 0.875rem;
-  padding: 6px 16px;
-  border-radius: 10px;
+  padding: 1px 8px;
+  border-radius: 8px;
   text-decoration: none;
   background: transparent;
   border: 1px solid transparent;
@@ -734,7 +712,7 @@ html, body {
   border-color: rgba(107, 114, 128, 0.25);
   font-weight: 600;
   transform: translateX(2px);
-  box-shadow: 0 4px 15px rgba(107, 114, 128, 0.18);
+  box-shadow: none;
 }
 
 .side-nav-link.active::after {
@@ -794,28 +772,20 @@ html, body {
   color: #374151;
   font-weight: 600;
   font-size: 0.7rem;
-  padding: 16px 20px;
-  margin: 8px 0 4px 0;
+  padding: 2px 6px;
+  margin: 0;
   position: relative;
   opacity: 0.8;
   transition: all 0.3s ease;
 }
 
 .side-nav-title::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 20px;
-  right: 20px;
-  height: 2px;
-  background: linear-gradient(90deg, #6b7280 0%, rgba(107, 114, 128, 0.3) 50%, transparent 100%);
-  border-radius: 1px;
-  transition: all 0.3s ease;
+  content: none;
 }
 
 .side-nav-title:hover::after {
-  background: linear-gradient(90deg, #6b7280 0%, rgba(107, 114, 128, 0.6) 100%);
-  box-shadow: 0 2px 8px rgba(107, 114, 128, 0.3);
+  background: linear-gradient(90deg, #6b7280 0%, rgba(107, 114, 128, 0.3) 50%, transparent 100%);
+  box-shadow: none;
 }
 
 /* Sub Menu */
@@ -823,19 +793,19 @@ html, body {
   list-style-type: none;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 0;
   padding-left: 0;
-  margin-top: 4px;
+  margin-top: 1px;
 }
 
 .sub-menu .side-nav-link {
   font-size: 0.825rem;
-  padding: 10px 20px 10px 48px;
-  margin: 2px 8px 2px 0;
-  border-radius: 0 8px 8px 0;
+  padding: 1px 12px 1px 36px;
+  margin: 0 4px 0 0;
+  border-radius: 0 6px 6px 0;
   position: relative;
   background: linear-gradient(135deg, rgba(24, 138, 226, 0.02) 0%, rgba(24, 138, 226, 0.01) 100%);
-  border-left: 3px solid rgba(24, 138, 226, 0.2);
+  border-left: 2px solid rgba(24, 138, 226, 0.2);
   backdrop-filter: blur(5px);
 }
 
@@ -892,18 +862,13 @@ html, body {
 
 /* Main Content Area */
 .main-content {
-  margin-left: 0; /* Remove margin since we're using absolute positioning */
+  margin-left: 0;
   flex: 1;
-  padding-top: 0; /* Remove top padding */
-  min-height: calc(100vh - 64px); /* Height minus header */
+  padding-top: 0;
   background-color: var(--greeva-body-bg);
-  position: fixed; /* Make it fixed to align with header */
-  top: 32px; /* Move upward - reduced from 64px */
-  left: 260px; /* Start right after sidebar */
-  right: 0; /* Stretch to right edge */
-  bottom: 0; /* Stretch to bottom */
-  z-index: 1; /* Proper z-index */
+  position: relative;
   border-left: none;
+  overflow-y: auto;
 }
 
 .content-wrapper {
@@ -912,8 +877,9 @@ html, body {
   display: flex;
   flex-direction: column;
   width: 100%;
-  margin-left: 0; /* Ensure no left margin */
-  padding-left: 1.5rem; /* Ensure content has proper spacing from left edge */
+  margin-left: 0;
+  padding-left: 1.5rem;
+  padding-bottom: 80px; /* Space for footer */
 }
 
 /* Page Title Styles */
@@ -939,11 +905,18 @@ html, body {
 
 /* Footer */
 .footer {
-  background: var(--white);
-  border-top: 1px solid var(--greeva-border-color);
-  padding: 1rem 0;
-  margin-top: auto;
-  width: 100%;
+  background: #ffffff !important;
+  border-top: 2px solid #dee2e6 !important;
+  padding: 1rem 1.5rem !important;
+  margin-top: auto !important;
+  width: 100% !important;
+  position: relative !important;
+  z-index: 100 !important;
+  box-shadow: 0 -2px 4px rgba(0,0,0,0.1) !important;
+  height: 60px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
 }
 
 .footer-text {
