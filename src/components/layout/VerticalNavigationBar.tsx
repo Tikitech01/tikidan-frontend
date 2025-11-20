@@ -116,16 +116,83 @@ const VerticalNavigationBar: React.FC = () => {
     const iconName = getIconForMenuItem(item.permission);
 
     return (
-      <NavItem key={`${item.permission}-${index}`} className="nav-item">
-        <NavLink
-          as={Link}
+      <div 
+        key={`${item.permission}-${index}`} 
+        className={`side-nav-item ${isItemActive ? 'active' : ''}`}
+        style={{
+          padding: '0 10px',
+          marginBottom: '2px'
+        }}
+      >
+        <Link
           to={item.path}
-          className={`nav-link ${isItemActive ? 'active' : ''}`}
+          className={`side-nav-link ${isItemActive ? 'active' : ''}`}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+            padding: '12px 16px',
+            borderRadius: '8px',
+            textDecoration: 'none',
+            color: isItemActive ? '#1f2937' : '#4b5563',
+            backgroundColor: isItemActive ? 'rgba(107, 114, 128, 0.12)' : 'transparent',
+            border: isItemActive ? '1px solid rgba(107, 114, 128, 0.25)' : '1px solid transparent',
+            fontWeight: isItemActive ? '600' : '500',
+            fontSize: '0.875rem',
+            transition: 'all 0.3s ease',
+            transform: isItemActive ? 'translateX(2px)' : 'none',
+            boxShadow: isItemActive ? '0 4px 15px rgba(107, 114, 128, 0.18)' : 'none'
+          }}
+          onMouseEnter={(e) => {
+            if (!isItemActive) {
+              e.currentTarget.style.backgroundColor = 'rgba(107, 114, 128, 0.06)';
+              e.currentTarget.style.borderColor = 'rgba(107, 114, 128, 0.15)';
+              e.currentTarget.style.transform = 'translateX(3px)';
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (!isItemActive) {
+              e.currentTarget.style.backgroundColor = 'transparent';
+              e.currentTarget.style.borderColor = 'transparent';
+              e.currentTarget.style.transform = 'none';
+            }
+          }}
         >
-          <Icon icon={iconName} className="nav-icon me-2" />
-          <span className="nav-text">{item.text}</span>
-        </NavLink>
-      </NavItem>
+          <div 
+            className="menu-icon"
+            style={{
+              fontSize: '18px',
+              width: '20px',
+              height: '20px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+              color: isItemActive ? '#188ae2' : '#6b7280'
+            }}
+          >
+            <Icon icon={iconName} />
+          </div>
+          <span 
+            className="menu-text"
+            style={{
+              flex: 1,
+              fontSize: '0.875rem'
+            }}
+          >
+            {item.text}
+          </span>
+          <div 
+            className="badge ms-auto"
+            style={{
+              backgroundColor: 'transparent',
+              color: 'transparent'
+            }}
+          >
+            {/* Badge can be added here if needed */}
+          </div>
+        </Link>
+      </div>
     );
   };
 
@@ -133,20 +200,66 @@ const VerticalNavigationBar: React.FC = () => {
     if (items.length === 0) return null;
 
     return (
-      <div key={sectionKey} className="mb-3">
-        <div className="nav-section-title">
+      <div 
+        key={sectionKey} 
+        className="menu-section"
+        style={{
+          marginBottom: '24px'
+        }}
+      >
+        <div 
+          className="side-nav-title"
+          style={{
+            letterSpacing: '0.1em',
+            textTransform: 'uppercase',
+            color: '#374151',
+            fontWeight: '600',
+            fontSize: '0.7rem',
+            padding: '16px 20px',
+            margin: '8px 0 4px 0',
+            opacity: '0.8',
+            position: 'relative'
+          }}
+        >
           {title}
         </div>
-        <Nav className="nav-pills flex-column">
+        <div 
+          className="sub-menu"
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '2px',
+            paddingLeft: 0,
+            marginTop: '4px'
+          }}
+        >
           {items.map((item, index) => renderMenuItem(item, index))}
-        </Nav>
+        </div>
       </div>
     );
   };
 
   return (
-    <div className="sidebar sidebar-vertical">
-      <div className="sidebar-inner">
+    <div 
+      className="sidenav-menu"
+      style={{
+        width: '260px',
+        backgroundColor: '#ffffff',
+        borderRight: '1px solid #e2e8f0',
+        boxShadow: '4px 0 20px rgba(0, 0, 0, 0.08)',
+        padding: '20px 0'
+      }}
+    >
+      <div 
+        className="side-nav"
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '4px',
+          padding: 0,
+          listStyle: 'none'
+        }}
+      >
         {/* Main Menu Section */}
         {renderMenuSection('MAIN MENU', menuItems.mainMenu, 'main')}
         
