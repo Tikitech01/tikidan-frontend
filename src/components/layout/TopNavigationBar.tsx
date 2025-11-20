@@ -1,0 +1,377 @@
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Button, Container, Nav, Navbar, NavDropdown } from 'react-bootstrap';
+import { Icon } from '@iconify/react';
+
+const TopNavigationBar: React.FC = () => {
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [showProfileDropdown, setShowProfileDropdown] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const navigate = useNavigate();
+
+  // Get user data from localStorage
+  useEffect(() => {
+    const userData = localStorage.getItem('user');
+    if (userData) {
+      setCurrentUser(JSON.parse(userData));
+    }
+  }, []);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Element;
+      if (!target.closest('.profile-dropdown')) {
+        setShowProfileDropdown(false);
+      }
+    };
+
+    if (showProfileDropdown) {
+      document.addEventListener('click', handleClickOutside);
+      return () => {
+        document.removeEventListener('click', handleClickOutside);
+      };
+    }
+  }, [showProfileDropdown]);
+
+  // Format role display
+  const getRoleDisplay = (role: string, department: string) => {
+    if (!role) return 'User';
+    
+    const formatRoleName = (roleName: string) => {
+      return roleName
+        .replace(/_/g, ' ')
+        .replace(/\b\w/g, (l: string) => l.toUpperCase());
+    };
+    
+    const formattedRole = formatRoleName(role);
+    if (!department) return formattedRole;
+    return `${formattedRole} - ${department}`;
+  };
+
+  // Handle logout
+  const handleLogout = () => {
+    try {
+      // Clear authentication data
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      
+      // Logout success
+      console.log('Logged out successfully');
+      
+      // Navigate to login page
+      navigate('/login');
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Even if there's an error, still redirect to login
+      navigate('/login');
+    }
+  };
+
+  // Handle search
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      console.log('Searching for:', searchQuery);
+      // Add your search logic here (e.g., navigate to search results page)
+      // navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
+    }
+  };
+
+  // Handle search input change
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+  };
+
+  // Ensure header stays fixed
+  useEffect(() => {
+    const ensureFixedHeader = () => {
+      const navbar = document.querySelector('.topnavbar') as HTMLElement;
+      if (navbar) {
+        navbar.style.position = 'fixed';
+        navbar.style.top = '0';
+        navbar.style.left = '0';
+        navbar.style.right = '0';
+        navbar.style.zIndex = '1050';
+        navbar.style.width = '100%';
+        navbar.style.height = '64px';
+      }
+    };
+
+    ensureFixedHeader();
+    const timeoutId = setTimeout(ensureFixedHeader, 100);
+    
+    const handleScroll = () => {
+      ensureFixedHeader();
+    };
+    
+    window.addEventListener('scroll', handleScroll);
+    
+    return () => {
+      clearTimeout(timeoutId);
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
+
+  return (
+    <Navbar className="topnavbar navbar-expand-lg navbar-light" expand="lg">
+      <Container fluid className="px-3">
+        {/* Mobile menu toggle */}
+        <Navbar.Toggle aria-controls="topnavbar-nav" className="me-3" />
+
+        <Navbar.Collapse id="topnavbar-nav">
+          {/* Left section - Logo and Search */}
+          <div className="d-flex align-items-center flex-grow-1" style={{ marginLeft: '75px' }}>
+            {/* Company Branding */}
+            <div className="d-flex align-items-center" style={{ marginRight: '75px' }}>
+              <img
+                src="/logo.png"
+                alt="Logo"
+                style={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: 6,
+                  marginRight: 10
+                }}
+              />
+              <div className="d-none d-md-block">
+                <div style={{
+                  fontWeight: 700,
+                  fontSize: '1.0rem',
+                  lineHeight: 1.2,
+                  color: '#ffffff',
+                  marginBottom: 2
+                }}>
+                  Tiki Tar Danosa
+                </div>
+                <div style={{
+                  opacity: 0.7,
+                  fontSize: '0.7rem',
+                  color: '#e2e8f0',
+                  lineHeight: 1
+                }}>
+                  India Pvt Ltd
+                </div>
+              </div>
+            </div>
+
+            {/* Search bar with improved styling - smaller size */}
+            <div className="search-container flex-grow-1 d-none d-md-block" style={{ 
+              maxWidth: '280px',
+              minWidth: '200px'
+            }}>
+              <form onSubmit={handleSearch}>
+                <div className="position-relative">
+                  <Icon 
+                    icon="mdi:magnify" 
+                    style={{
+                      position: 'absolute',
+                      left: '12px',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      color: '#6b7280',
+                      zIndex: 1,
+                      fontSize: '16px'
+                    }} 
+                  />
+                  <input 
+                    type="text" 
+                    className="form-control search-input" 
+                    placeholder="Search employees or clients..."
+                    value={searchQuery}
+                    onChange={handleSearchChange}
+                    style={{
+                      borderRadius: '25px',
+                      border: '2px solid #9ca3af',
+                      backgroundColor: '#f3f4f6',
+                      color: '#374151',
+                      fontWeight: '400',
+                      padding: '0.7rem 1rem 0.7rem 2.5rem',
+                      fontSize: '0.875rem',
+                      width: '100%',
+                      transition: 'all 0.2s ease',
+                      boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+                    }}
+                    onFocus={(e) => {
+                      e.target.style.borderColor = '#3b82f6';
+                      e.target.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.1)';
+                    }}
+                    onBlur={(e) => {
+                      e.target.style.borderColor = '#9ca3af';
+                      e.target.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.1)';
+                    }}
+                  />
+                </div>
+              </form>
+            </div>
+          </div>
+
+          {/* Mobile Search Bar - Only visible when collapsed */}
+          <div className="d-md-none px-3 mt-3">
+            <div className="search-container">
+              <form onSubmit={handleSearch}>
+                <div className="position-relative">
+                  <Icon 
+                    icon="mdi:magnify" 
+                    style={{
+                      position: 'absolute',
+                      left: '12px',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      color: '#6b7280',
+                      zIndex: 1,
+                      fontSize: '16px'
+                    }} 
+                  />
+                  <input 
+                    type="text" 
+                    className="form-control search-input" 
+                    placeholder="Search employees or clients..."
+                    value={searchQuery}
+                    onChange={handleSearchChange}
+                    style={{
+                      borderRadius: '25px',
+                      border: '2px solid #9ca3af',
+                      backgroundColor: '#f3f4f6',
+                      color: '#374151',
+                      fontWeight: '400',
+                      padding: '0.7rem 1rem 0.7rem 2.5rem',
+                      fontSize: '0.875rem',
+                      width: '100%',
+                      transition: 'all 0.2s ease',
+                      boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+                    }}
+                    onFocus={(e) => {
+                      e.target.style.borderColor = '#3b82f6';
+                      e.target.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.1)';
+                    }}
+                    onBlur={(e) => {
+                      e.target.style.borderColor = '#9ca3af';
+                      e.target.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.1)';
+                    }}
+                  />
+                </div>
+              </form>
+            </div>
+          </div>
+
+          {/* Right side items */}
+          <Nav className="align-items-center">
+            {/* Notifications */}
+            <Nav.Item className="me-3">
+              <div className="dropdown">
+                <button
+                  className="btn btn-link btn-sm position-relative"
+                  onClick={() => setShowNotifications(!showNotifications)}
+                  style={{ color: '#ffffff' }}
+                >
+                  <Icon icon="mdi:bell-outline" width="20" height="20" style={{ color: '#ffffff' }} />
+                  <span className="badge bg-danger position-absolute top-0 start-100 translate-middle rounded-pill">
+                  </span>
+                </button>
+                {showNotifications && (
+                  <div className="dropdown-menu dropdown-menu-end show" style={{width: '300px'}}>
+                    <div className="dropdown-header">Notifications</div>
+                    <div className="dropdown-divider"></div>
+                    <div className="dropdown-item-text">
+                      <small>New project assigned</small>
+                    </div>
+                    <div className="dropdown-item-text">
+                      <small>Meeting reminder</small>
+                    </div>
+                    <div className="dropdown-item-text">
+                      <small>Report generated</small>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </Nav.Item>
+
+            {/* User Profile Section */}
+            <div className="d-flex align-items-center gap-3">
+              {/* User Info Display */}
+              <div className="d-flex align-items-center gap-2">
+                {/* User Avatar */}
+                <div
+                  style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: '50%',
+                    backgroundColor: '#4a5568',
+                    border: '2px solid #a0aec0',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}
+                >
+                  <Icon icon="mdi:account" style={{ color: '#ffffff', fontSize: '1.2rem' }} />
+                </div>
+                
+                {/* User Info */}
+                <div className="d-flex flex-column align-items-start">
+                  <span style={{
+                    color: '#ffffff',
+                    fontWeight: 600,
+                    fontSize: '0.875rem',
+                    lineHeight: 1.2,
+                    margin: 0
+                  }}>
+                    {currentUser?.name || 'Admin User'}
+                  </span>
+                  <span style={{
+                    color: '#cbd5e0',
+                    fontSize: '0.7rem',
+                    lineHeight: 1,
+                    textTransform: 'capitalize',
+                    margin: 0
+                  }}>
+                    {getRoleDisplay(currentUser?.role, currentUser?.department)}
+                  </span>
+                </div>
+              </div>
+
+              {/* Menu Button */}
+              <div className="dropdown profile-dropdown">
+                <button 
+                  className="btn btn-link btn-sm p-0" 
+                  type="button" 
+                  onClick={() => setShowProfileDropdown(!showProfileDropdown)}
+                  style={{ color: '#ffffff' }}
+                >
+                  <Icon icon="mdi:chevron-down" style={{ color: '#ffffff' }} />
+                </button>
+                {showProfileDropdown && (
+                  <div 
+                    className="dropdown-menu dropdown-menu-end show"
+                    style={{
+                      position: 'absolute',
+                      top: '100%',
+                      right: 0,
+                      zIndex: 1050,
+                      minWidth: '180px'
+                    }}
+                    onClick={() => setShowProfileDropdown(false)}
+                  >
+                    <Link className="dropdown-item d-flex align-items-center" to="/profile">
+                      <Icon icon="mdi:account" className="me-2" /> Profile
+                    </Link>
+                    <button className="dropdown-item d-flex align-items-center" type="button">
+                      <Icon icon="mdi:cog" className="me-2" /> Settings
+                    </button>
+                    <div className="dropdown-divider"></div>
+                    <button className="dropdown-item d-flex align-items-center" type="button" onClick={handleLogout}>
+                      <Icon icon="mdi:logout" className="me-2" /> Logout
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </Nav>
+        </Navbar.Collapse>
+      </Container>
+    </Navbar>
+  );
+};
+
+export default TopNavigationBar;

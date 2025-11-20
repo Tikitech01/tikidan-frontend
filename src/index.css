@@ -13,3 +13,37 @@ html, body, #root {
 * {
   box-sizing: border-box;
 }
+
+/* Enhanced search input styling */
+.search-input:focus {
+  outline: none !important;
+  border-color: #3b82f6 !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+}
+
+/* Improve form control appearance */
+.form-control.search-input {
+  border: 2px solid #e5e7eb;
+  transition: all 0.2s ease;
+}
+
+.form-control.search-input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Mobile responsive improvements */
+@media (max-width: 768px) {
+  .search-container {
+    margin-left: 0 !important;
+  }
+}
+
+/* Ensure navbar text is visible */
+.topnavbar .navbar-nav .nav-link {
+  color: #ffffff !important;
+}
+
+.topnavbar .navbar-nav .nav-link:hover {
+  color: #f3f4f6 !important;
+}

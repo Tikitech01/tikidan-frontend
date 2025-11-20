@@ -1,37 +1,7 @@
 import React, { useState } from 'react';
-import {
-  Box,
-  Paper,
-  Typography,
-  Button,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  TableSortLabel,
-  TextField,
-  InputAdornment,
-  Chip,
-  IconButton,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  Avatar,
-  Tooltip,
-  useTheme,
-  alpha,
-} from '@mui/material';
-import {
-  Add as AddIcon,
-  Search as SearchIcon,
-  Edit as EditIcon,
-  Delete as DeleteIcon,
-  Email as EmailIcon,
-  Phone as PhoneIcon,
-  Person as PersonIcon,
-} from '@mui/icons-material';
+import { Card, Table, Button, Form, InputGroup, Badge, Dropdown, Modal, Row, Col } from 'react-bootstrap';
+import { Icon } from '@iconify/react';
+import PageTitle from '../components/PageTitle';
 import AddEmployeeForm from '../components/AddEmployeeForm';
 
 // Types
@@ -47,15 +17,13 @@ interface Employee {
 }
 
 const Employees: React.FC = () => {
-  const theme = useTheme();
-  
   // State
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortField, setSortField] = useState<keyof Employee>('name');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
-  const [openAddDialog, setOpenAddDialog] = useState(false);
+  const [showAddDialog, setShowAddDialog] = useState(false);
   const [editingEmployeeId, setEditingEmployeeId] = useState<string | undefined>(undefined);
 
   // Fetch employees from backend
@@ -173,11 +141,12 @@ const Employees: React.FC = () => {
   };
 
   const handleAddEmployee = () => {
-    setOpenAddDialog(true);
+    setEditingEmployeeId(undefined);
+    setShowAddDialog(true);
   };
 
   const handleCloseAddDialog = () => {
-    setOpenAddDialog(false);
+    setShowAddDialog(false);
     setEditingEmployeeId(undefined);
   };
 
@@ -218,7 +187,7 @@ const Employees: React.FC = () => {
   const handleEditEmployee = (id: string) => {
     // Open edit dialog with employee ID
     setEditingEmployeeId(id);
-    setOpenAddDialog(true);
+    setShowAddDialog(true);
   };
 
   // Get employee initials for avatar
@@ -232,241 +201,155 @@ const Employees: React.FC = () => {
   };
 
   return (
-    <Box sx={{ p: 1.5, pt: 1, backgroundColor: '#fafbfc', minHeight: '100vh' }}>
-      {/* Header */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5, pb: 1, borderBottom: '1px solid #e2e8f0' }}>
-        <Box>
-          <Typography variant="h6" sx={{ fontWeight: 600, color: '#1e293b', fontSize: '1.1rem' }}>
-            Employee Management
-          </Typography>
-        </Box>
-        <Button
-          variant="contained"
-          size="small"
-          startIcon={<AddIcon fontSize="small" />}
-          onClick={handleAddEmployee}
-          sx={{
-            background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
-            boxShadow: '0 1px 3px rgba(59, 130, 246, 0.3)',
-            textTransform: 'none',
-            px: 1.5,
-            py: 0.5,
-            fontSize: '0.75rem',
-            fontWeight: 500,
-            borderRadius: 1,
-            '&:hover': {
-              background: 'linear-gradient(135deg, #2563eb 0%, #1e40af 100%)',
-              boxShadow: '0 2px 6px rgba(59, 130, 246, 0.4)',
-              transform: 'translateY(-1px)',
-            },
-            transition: 'all 0.2s ease',
-          }}
-        >
-          Add Employee
-        </Button>
-      </Box>
+    <>
+      <PageTitle 
+        title="Employee Management"
+        subtitle="Manage your team members and their information"
+        icon="mdi:account-supervisor"
+      />
 
-      {/* Employees Table */}
-      <Paper
-        elevation={0}
-        sx={{
-          borderRadius: 1,
-          overflow: 'hidden',
-          border: '1px solid #e2e8f0',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-        }}
-      >
-        <TableContainer>
-          <Table>
-            <TableHead>
-              <TableRow sx={{
-                backgroundColor: '#f8fafc',
-                borderBottom: '1px solid #e2e8f0',
-              }}>
-                <TableCell sx={{ fontWeight: 600, color: '#475569', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.5px', py: 1 }}>
-                  <TableSortLabel
-                    active={sortField === 'name'}
-                    direction={sortDirection}
-                    onClick={() => handleSort('name')}
-                  >
-                    Employee
-                  </TableSortLabel>
-                </TableCell>
-                <TableCell sx={{ fontWeight: 600, color: '#475569', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.5px', py: 1 }}>
-                  <TableSortLabel
-                    active={sortField === 'status'}
-                    direction={sortDirection}
-                    onClick={() => handleSort('status')}
-                  >
-                    Status
-                  </TableSortLabel>
-                </TableCell>
-                <TableCell sx={{ fontWeight: 600, color: '#475569', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.5px', py: 1 }}>
-                  <TableSortLabel
-                    active={sortField === 'allMeetings'}
-                    direction={sortDirection}
-                    onClick={() => handleSort('allMeetings')}
-                  >
-                    Meetings
-                  </TableSortLabel>
-                </TableCell>
-                <TableCell sx={{ fontWeight: 600, color: '#475569', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.5px', py: 1 }}>
-                  <TableSortLabel
-                    active={sortField === 'mostVisitedCategory'}
-                    direction={sortDirection}
-                    onClick={() => handleSort('mostVisitedCategory')}
-                  >
-                    Category
-                  </TableSortLabel>
-                </TableCell>
-                <TableCell sx={{ fontWeight: 600, color: '#475569', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.5px', py: 1 }}>
-                  <TableSortLabel
-                    active={sortField === 'phone'}
-                    direction={sortDirection}
-                    onClick={() => handleSort('phone')}
-                  >
-                    Contact
-                  </TableSortLabel>
-                </TableCell>
-                <TableCell align="center" sx={{ fontWeight: 600, color: '#475569', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.5px', py: 1 }}>Actions</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {filteredAndSortedEmployees.map((employee) => (
-                <TableRow
-                  key={employee.id}
-                  sx={{
-                    borderBottom: '1px solid #f1f5f9',
-                    '&:hover': {
-                      backgroundColor: '#f8fafc',
-                      transition: 'background-color 0.2s ease',
-                    },
-                    '&:last-child': {
-                      borderBottom: 'none',
-                    },
-                  }}
-                >
-                  <TableCell sx={{ py: 1 }}>
-                    <Box>
-                      <Typography variant="subtitle2" sx={{ fontWeight: 500, color: '#1e293b', mb: 0.2, fontSize: '0.85rem' }}>
-                        {employee.name}
-                      </Typography>
-                      <Box sx={{ lineHeight: 0.8 }}>
-                        <Typography variant="caption" sx={{ color: '#64748b', display: 'block', mb: 0, fontSize: '0.7rem', lineHeight: 1 }}>
-                          {employee.role}
-                        </Typography>
-                        <Typography variant="caption" sx={{ color: '#94a3b8', fontSize: '0.7rem', lineHeight: 1 }}>
-                          Reports to: {employee.reportingTo}
-                        </Typography>
-                      </Box>
-                    </Box>
-                  </TableCell>
-                  <TableCell sx={{ py: 1 }}>
-                    <Chip
-                      label={employee.status}
-                      size="small"
-                      sx={{
-                        backgroundColor: employee.status === 'Active' ? '#dcfce7' : '#fef2f2',
-                        color: employee.status === 'Active' ? '#166534' : '#991b1b',
-                        fontWeight: 500,
-                        fontSize: '0.7rem',
-                        borderRadius: 1,
-                        px: 1,
-                        height: 20,
-                        minHeight: 'auto',
-                      }}
-                    />
-                  </TableCell>
-                  <TableCell sx={{ py: 1 }}>
-                    <Typography variant="body2" sx={{ fontWeight: 500, color: '#1e293b', fontSize: '0.8rem' }}>
-                      {employee.allMeetings}
-                    </Typography>
-                  </TableCell>
-                  <TableCell sx={{ py: 1 }}>
-                    <Typography variant="body2" sx={{ color: '#64748b', fontSize: '0.8rem' }}>
-                      {employee.mostVisitedCategory}
-                    </Typography>
-                  </TableCell>
-                  <TableCell sx={{ py: 1 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                      <PhoneIcon sx={{ fontSize: 14, color: '#94a3b8' }} />
-                      <Typography variant="body2" sx={{ color: '#64748b', fontSize: '0.8rem' }}>
-                        {employee.phone}
-                      </Typography>
-                    </Box>
-                  </TableCell>
-                  <TableCell align="center" sx={{ py: 1 }}>
-                    <Box sx={{ display: 'flex', gap: 0.5, justifyContent: 'center' }}>
-                      <Tooltip title="Edit">
-                        <IconButton
-                          size="small"
-                          onClick={() => handleEditEmployee(employee.id)}
-                          sx={{
-                            color: '#3b82f6',
-                            backgroundColor: '#eff6ff',
-                            '&:hover': {
-                              backgroundColor: '#dbeafe',
-                              transform: 'scale(1.05)',
-                            },
-                            transition: 'all 0.2s ease',
-                          }}
-                        >
-                          <EditIcon fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
-                      <Tooltip title="Delete">
-                        <IconButton
-                          size="small"
-                          onClick={() => handleDeleteEmployee(employee.id)}
-                          sx={{
-                            color: '#ef4444',
-                            backgroundColor: '#fef2f2',
-                            '&:hover': {
-                              backgroundColor: '#fee2e2',
-                              transform: 'scale(1.05)',
-                            },
-                            transition: 'all 0.2s ease',
-                          }}
-                        >
-                          <DeleteIcon fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
-                    </Box>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+      <Card className="border-0 shadow-sm">
+        <Card.Header className="d-flex justify-content-between align-items-center bg-transparent border-0">
+          <div>
+            <h5 className="mb-0 fw-semibold">Employees</h5>
+            <small className="text-muted">Manage team members and their information</small>
+          </div>
+          <Button 
+            variant="primary" 
+            onClick={handleAddEmployee}
+            className="d-flex align-items-center"
+          >
+            <Icon icon="mdi:account-plus" className="me-2" />
+            Add Employee
+          </Button>
+        </Card.Header>
         
-        {filteredAndSortedEmployees.length === 0 && (
-          <Box sx={{ p: 2, textAlign: 'center' }}>
-            <PersonIcon sx={{ fontSize: 48, color: '#94a3b8', mb: 1.5 }} />
-            <Typography variant="subtitle2" sx={{ color: '#64748b', mb: 0.5 }}>
-              No employees found
-            </Typography>
-            <Typography variant="body2" sx={{ color: '#94a3b8', fontSize: '0.8rem' }}>
-              {searchTerm ? 'Try adjusting your search criteria' : 'Get started by adding your first employee'}
-            </Typography>
-          </Box>
-        )}
-      </Paper>
+        <Card.Body>
+          <Row className="mb-3">
+            <Col lg={4} md={6}>
+              <InputGroup>
+                <InputGroup.Text>
+                  <Icon icon="mdi:magnify" />
+                </InputGroup.Text>
+                <Form.Control
+                  type="text"
+                  placeholder="Search employees..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </InputGroup>
+            </Col>
+          </Row>
 
-      {/* Add/Edit Employee Dialog */}
-      <Dialog
-        open={openAddDialog}
-        onClose={handleCloseAddDialog}
-        maxWidth="lg"
-        fullWidth
-        PaperProps={{
-          sx: {
-            maxHeight: '90vh',
-            overflow: 'auto'
-          }
-        }}
+          <div className="table-responsive">
+            <Table className="table-hover align-middle">
+              <thead className="bg-light">
+                <tr>
+                  <th className="fw-semibold text-muted small">
+                    <Button 
+                      variant="link" 
+                      className="p-0 text-decoration-none text-muted"
+                      onClick={() => handleSort('name')}
+                    >
+                      Employee
+                      <Icon icon={sortField === 'name' && sortDirection === 'desc' ? 'mdi:chevron-down' : 'mdi:chevron-up'} className="ms-1" />
+                    </Button>
+                  </th>
+                  <th className="fw-semibold text-muted small">Status</th>
+                  <th className="fw-semibold text-muted small">Meetings</th>
+                  <th className="fw-semibold text-muted small">Category</th>
+                  <th className="fw-semibold text-muted small">Contact</th>
+                  <th className="fw-semibold text-muted small text-center">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredAndSortedEmployees.map((employee) => (
+                  <tr key={employee.id}>
+                    <td>
+                      <div className="d-flex align-items-center">
+                        <div 
+                          className="bg-primary text-white d-flex align-items-center justify-content-center rounded-circle me-3"
+                          style={{ width: '40px', height: '40px', fontSize: '0.875rem' }}
+                        >
+                          {getEmployeeInitials(employee.name)}
+                        </div>
+                        <div>
+                          <h6 className="mb-0 fw-semibold">{employee.name}</h6>
+                          <small className="text-muted">{employee.role}</small>
+                          <br />
+                          <small className="text-muted">Reports to: {employee.reportingTo}</small>
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <Badge 
+                        bg={employee.status === 'Active' ? 'success' : 'secondary'}
+                        className="px-2 py-1"
+                      >
+                        {employee.status}
+                      </Badge>
+                    </td>
+                    <td>
+                      <span className="fw-semibold">{employee.allMeetings}</span>
+                    </td>
+                    <td>
+                      <small className="text-muted">{employee.mostVisitedCategory}</small>
+                    </td>
+                    <td>
+                      <div className="d-flex align-items-center">
+                        <Icon icon="mdi:phone" className="text-muted me-1" />
+                        <small className="text-muted">{employee.phone}</small>
+                      </div>
+                    </td>
+                    <td>
+                      <div className="d-flex justify-content-center gap-2">
+                        <Button
+                          variant="outline-primary"
+                          size="sm"
+                          onClick={() => handleEditEmployee(employee.id)}
+                        >
+                          <Icon icon="mdi:pencil" />
+                        </Button>
+                        <Button
+                          variant="outline-danger"
+                          size="sm"
+                          onClick={() => handleDeleteEmployee(employee.id)}
+                        >
+                          <Icon icon="mdi:delete" />
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </Table>
+
+            {filteredAndSortedEmployees.length === 0 && (
+              <div className="text-center py-5">
+                <Icon icon="mdi:account-search" className="text-muted" width="64" height="64" />
+                <h6 className="mt-3 text-muted">No employees found</h6>
+                <p className="text-muted">
+                  {searchTerm ? 'Try adjusting your search criteria' : 'Get started by adding your first employee'}
+                </p>
+              </div>
+            )}
+          </div>
+        </Card.Body>
+      </Card>
+
+      {/* Add/Edit Employee Modal */}
+      <Modal 
+        show={showAddDialog} 
+        onHide={handleCloseAddDialog}
+        size="lg"
+        scrollable
       >
-        <DialogTitle>{editingEmployeeId ? 'Edit Employee' : 'Add New Employee'}</DialogTitle>
-        <DialogContent>
+        <Modal.Header closeButton>
+          <Modal.Title>
+            {editingEmployeeId ? 'Edit Employee' : 'Add New Employee'}
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
           <AddEmployeeForm
             onClose={handleCloseAddDialog}
             employeeId={editingEmployeeId}
@@ -475,9 +358,9 @@ const Employees: React.FC = () => {
               fetchEmployees();
             }}
           />
-        </DialogContent>
-      </Dialog>
-    </Box>
+        </Modal.Body>
+      </Modal>
+    </>
   );
 };
 
