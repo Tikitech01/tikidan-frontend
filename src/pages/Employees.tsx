@@ -209,23 +209,9 @@ const Employees: React.FC = () => {
       </div>
 
       <Card className="border-0 shadow-sm">
-        <Card.Header className="d-flex justify-content-between align-items-center bg-transparent border-0">
-          <div>
-            <h5 className="mb-0 fw-semibold">Employees</h5>
-          </div>
-          <Button 
-            variant="primary" 
-            onClick={handleAddEmployee}
-            className="d-flex align-items-center"
-          >
-            <Icon icon="mdi:account-plus" className="me-2" />
-            Add Employee
-          </Button>
-        </Card.Header>
-        
-        <Card.Body>
-          <Row className="mb-3">
-            <Col lg={4} md={6}>
+        <Card.Header className="bg-transparent border-0">
+          <Row className="align-items-center">
+            <Col lg={4} md={6} className="mb-3 mb-lg-0">
               <InputGroup>
                 <InputGroup.Text>
                   <Icon icon="mdi:magnify" />
@@ -238,7 +224,20 @@ const Employees: React.FC = () => {
                 />
               </InputGroup>
             </Col>
+            <Col lg={8} md={6} className="text-lg-end">
+              <Button 
+                variant="primary" 
+                onClick={handleAddEmployee}
+                className="d-flex align-items-center ms-lg-auto"
+              >
+                <Icon icon="mdi:account-plus" className="me-2" />
+                Add Employee
+              </Button>
+            </Col>
           </Row>
+        </Card.Header>
+        
+        <Card.Body>
 
           <div className="table-responsive">
             <Table className="table-hover align-middle">
