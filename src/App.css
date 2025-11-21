@@ -76,7 +76,7 @@ body {
   color: rgb(76, 76, 92);
   font-family: var(--greeva-font-sans-serif);
   font-size: 1.2rem;
-  font-weight: 600;
+  font-weight: 700;
   line-height: 21.6px;
   margin: 0;
   padding: 8px 0px;
@@ -182,4 +182,165 @@ body {
   display: none !important;
   width: 0 !important;
   height: 0 !important;
+}
+
+/* ========================================
+   EMPLOYEE PAGE FONT FAMILY STYLING
+   ======================================== */
+
+/* Employee Table Font */
+.table {
+  font-family: var(--greeva-font-sans-serif);
+}
+
+.table th {
+  font-family: var(--greeva-font-sans-serif);
+}
+
+.table td {
+  font-family: var(--greeva-font-sans-serif);
+}
+
+/* Employee Avatar Font */
+.employee-avatar {
+  font-family: var(--greeva-font-sans-serif);
+}
+
+/* Search Box Font */
+.employee-search .form-control {
+  font-family: var(--greeva-font-sans-serif);
+}
+
+/* Button Font */
+.btn {
+  font-family: var(--greeva-font-sans-serif);
+}
+
+/* Badge Font */
+.badge {
+  font-family: var(--greeva-font-sans-serif);
+}
+
+/* Modal Font */
+.modal-title {
+  font-family: var(--greeva-font-sans-serif);
+}
+
+/* Form Elements Font */
+.form-control {
+  font-family: var(--greeva-font-sans-serif);
+}
+
+.form-label {
+  font-family: var(--greeva-font-sans-serif);
+}
+
+/* Typography Elements Font */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--greeva-font-sans-serif);
+}
+
+p {
+  font-family: var(--greeva-font-sans-serif);
+}
+
+/* Material-UI Components Font */
+.MuiTypography-root {
+  font-family: var(--greeva-font-sans-serif) !important;
+}
+
+.MuiButton-root {
+  font-family: var(--greeva-font-sans-serif) !important;
+}
+
+.MuiFormControl-root {
+  font-family: var(--greeva-font-sans-serif) !important;
+}
+
+.MuiInputBase-root {
+  font-family: var(--greeva-font-sans-serif) !important;
+}
+
+/* ========================================
+   DROPDOWN FIX FOR HEADER NAVIGATION
+   ======================================== */
+
+/* Force dropdowns to appear above everything */
+.topnavbar .dropdown-menu,
+.topnavbar .dropdown-menu.show,
+.navbar .dropdown-menu,
+.navbar .dropdown-menu.show {
+  z-index: 999999 !important;
+  position: absolute !important;
+  top: 100% !important;
+  right: 0 !important;
+}
+
+/* Ensure dropdown parent containers don't create stacking context */
+.topnavbar,
+.navbar,
+.navbar-expand-lg {
+  position: relative !important;
+  z-index: 1050 !important;
+}
+
+/* Force dropdown buttons to have proper positioning */
+.topnavbar .dropdown {
+  position: relative !important;
+}
+
+.topnavbar .dropdown button {
+  position: relative !important;
+  z-index: 1050 !important;
+}
+
+/* Ensure dropdown content is always visible */
+.topnavbar .dropdown-menu,
+.navbar .dropdown-menu {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  transform: none !important;
+  transition: none !important;
+}
+
+/* Override any conflicting styles */
+.topnavbar .dropdown-menu.show {
+  z-index: 999999 !important;
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15) !important;
+  border-radius: 8px !important;
+}
+
+/* Ensure dropdown content is always visible */
+.topnavbar .dropdown-header {
+  color: #1e293b !important;
+  background: #f8fafc !important;
+  font-weight: 600 !important;
+  padding: 0.75rem 1rem !important;
+  font-family: var(--greeva-font-sans-serif) !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+}
+
+.topnavbar .dropdown-item,
+.topnavbar .dropdown-item-text {
+  color: #374151 !important;
+  font-family: var(--greeva-font-sans-serif) !important;
+  padding: 0.5rem 1rem !important;
+}
+
+.topnavbar .dropdown-item:hover {
+  background-color: #f3f4f6 !important;
+  color: #1e293b !important;
+}
+
+.topnavbar .dropdown-divider {
+  border-color: #e5e7eb !important;
+  margin: 0.5rem 0 !important;
+}
+
+.topnavbar .dropdown-item small {
+  color: #6b7280 !important;
+  font-family: var(--greeva-font-sans-serif) !important;
 }

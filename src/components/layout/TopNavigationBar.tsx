@@ -108,14 +108,21 @@ const TopNavigationBar: React.FC = () => {
   }, []);
 
   return (
-    <Navbar className="topnavbar navbar-expand-lg navbar-light" expand="lg">
+    <Navbar 
+      className="topnavbar navbar-expand-lg navbar-light" 
+      expand="lg"
+      style={{
+        position: 'relative',
+        zIndex: 1050
+      }}
+    >
       <Container fluid className="px-3">
         {/* Mobile menu toggle */}
         <Navbar.Toggle aria-controls="topnavbar-nav" className="me-3" />
 
         <Navbar.Collapse id="topnavbar-nav">
           {/* Left section - Logo and Search */}
-          <div className="d-flex align-items-center flex-grow-1" style={{ marginLeft: '75px' }}>
+          <div className="d-flex align-items-center flex-grow-1" style={{ marginLeft: '75px', marginTop: '-8px' }}>
             {/* Company Branding */}
             <div className="d-flex align-items-center" style={{ marginRight: '75px' }}>
               <img
@@ -266,16 +273,35 @@ const TopNavigationBar: React.FC = () => {
                   </span>
                 </button>
                 {showNotifications && (
-                  <div className="dropdown-menu dropdown-menu-end show" style={{width: '300px'}}>
-                    <div className="dropdown-header">Notifications</div>
+                  <div 
+                    className="dropdown-menu dropdown-menu-end show" 
+                    style={{
+                      width: '300px',
+                      position: 'absolute',
+                      top: '100%',
+                      right: 0,
+                      zIndex: 9999,
+                      backgroundColor: '#ffffff',
+                      border: '1px solid #e2e8f0',
+                      borderRadius: '8px',
+                      boxShadow: '0 8px 32px rgba(0, 0, 0, 0.15)'
+                    }}
+                  >
+                    <div className="dropdown-header" style={{ 
+                      fontWeight: 600, 
+                      color: '#1e293b',
+                      fontFamily: 'var(--greeva-font-sans-serif)'
+                    }}>
+                      Notifications
+                    </div>
                     <div className="dropdown-divider"></div>
-                    <div className="dropdown-item-text">
+                    <div className="dropdown-item-text" style={{ fontFamily: 'var(--greeva-font-sans-serif)' }}>
                       <small>New project assigned</small>
                     </div>
-                    <div className="dropdown-item-text">
+                    <div className="dropdown-item-text" style={{ fontFamily: 'var(--greeva-font-sans-serif)' }}>
                       <small>Meeting reminder</small>
                     </div>
-                    <div className="dropdown-item-text">
+                    <div className="dropdown-item-text" style={{ fontFamily: 'var(--greeva-font-sans-serif)' }}>
                       <small>Report generated</small>
                     </div>
                   </div>
@@ -284,7 +310,7 @@ const TopNavigationBar: React.FC = () => {
             </Nav.Item>
 
             {/* User Profile Section */}
-            <div className="d-flex align-items-center gap-3">
+            <div className="d-flex align-items-center gap-3" style={{ backgroundColor: '#4a5568', height: '64px', margin: '-10px 8px 4px 8px', padding: '0 20px', borderRadius: '2px' }}>
               {/* User Info Display */}
               <div className="d-flex align-items-center gap-2">
                 {/* User Avatar */}
@@ -343,19 +369,37 @@ const TopNavigationBar: React.FC = () => {
                       position: 'absolute',
                       top: '100%',
                       right: 0,
-                      zIndex: 1050,
-                      minWidth: '180px'
+                      zIndex: 9999,
+                      minWidth: '180px',
+                      backgroundColor: '#ffffff',
+                      border: '1px solid #e2e8f0',
+                      borderRadius: '8px',
+                      boxShadow: '0 8px 32px rgba(0, 0, 0, 0.15)',
+                      fontFamily: 'var(--greeva-font-sans-serif)'
                     }}
                     onClick={() => setShowProfileDropdown(false)}
                   >
-                    <Link className="dropdown-item d-flex align-items-center" to="/profile">
+                    <Link 
+                      className="dropdown-item d-flex align-items-center" 
+                      to="/profile"
+                      style={{ fontFamily: 'var(--greeva-font-sans-serif)' }}
+                    >
                       <Icon icon="mdi:account" className="me-2" /> Profile
                     </Link>
-                    <button className="dropdown-item d-flex align-items-center" type="button">
+                    <button 
+                      className="dropdown-item d-flex align-items-center" 
+                      type="button"
+                      style={{ fontFamily: 'var(--greeva-font-sans-serif)' }}
+                    >
                       <Icon icon="mdi:cog" className="me-2" /> Settings
                     </button>
                     <div className="dropdown-divider"></div>
-                    <button className="dropdown-item d-flex align-items-center" type="button" onClick={handleLogout}>
+                    <button 
+                      className="dropdown-item d-flex align-items-center" 
+                      type="button" 
+                      onClick={handleLogout}
+                      style={{ fontFamily: 'var(--greeva-font-sans-serif)' }}
+                    >
                       <Icon icon="mdi:logout" className="me-2" /> Logout
                     </button>
                   </div>
