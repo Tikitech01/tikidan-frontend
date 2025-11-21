@@ -29,7 +29,7 @@
   --white: #ffffff;
   
   /* Header background color - Easily adjustable */
-  --header-bg-color: #4d5562;
+  --header-bg-color: #343B4A;
 }
 
 /* Global Styles */
@@ -63,7 +63,7 @@ body {
   right: 0 !important;
   z-index: 1 !important;
   border-bottom: 1px solid var(--greeva-border-color);
-  background: linear-gradient(135deg, #e5e7eb 0%, #d1d5db 100%) !important;
+  background: var(--header-bg-color) !important;
   height: 64px !important;
   width: 100% !important;
   box-shadow: none !important;
@@ -182,16 +182,16 @@ html, body {
 .topnavbar .search-box input {
   border-radius: 25px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-  border-color: #e2e8f0;
-  background-color: #f7fafc;
+  border-color: #4a5568;
+  background-color: #343B4A;
   font-size: 0.775rem;
-  color: #2d3748;
+  color: #ffffff;
 }
 
 .topnavbar .search-box input:focus {
-  border-color: #cbd5e0;
-  background-color: #ffffff;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1), 0 0 0 0.2rem rgba(203, 213, 224, 0.15);
+  border-color: #4a5568;
+  background-color: #2d3748;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1), 0 0 0 0.2rem rgba(74, 85, 104, 0.15);
 }
 
 .topnavbar .search-box input::placeholder {
@@ -1069,4 +1069,17 @@ html, body {
 
 .topnavbar.navbar-light {
   background: var(--header-bg-color) !important;
+}
+
+/* Force white text color for search inputs */
+.topnavbar .search-box input,
+.topnavbar .search-container input,
+.form-control.search-input {
+  color: #ffffff !important;
+}
+
+.topnavbar .search-box input::placeholder,
+.topnavbar .search-container input::placeholder,
+.form-control.search-input::placeholder {
+  color: #a0aec0 !important;
 }

@@ -163,7 +163,7 @@ const TopNavigationBar: React.FC = () => {
                       left: '12px',
                       top: '50%',
                       transform: 'translateY(-50%)',
-                      color: '#bcbdc1ff',
+                      color: '#d4d7dbff',
                       zIndex: 1,
                       fontSize: '16px'
                     }} 
@@ -176,9 +176,9 @@ const TopNavigationBar: React.FC = () => {
                     onChange={handleSearchChange}
                     style={{
                       borderRadius: '7px',
-                      border: '2px solid #9ca3af',
-                      backgroundColor: '#f3f4f6',
-                      color: '#374151',
+                      border: '2px solid #4a5568',
+                      backgroundColor: '#575e6dff',
+                      color: '#ffffff',
                       fontWeight: '400',
                       padding: '0.45rem 1rem 0.45rem 2.5rem',
                       fontSize: '0.875rem',
@@ -187,14 +187,14 @@ const TopNavigationBar: React.FC = () => {
                       boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
                     }}
                     onFocus={(e) => {
-                      e.target.style.borderColor = '#3b82f6';
-                      e.target.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.1)';
-                      e.target.style.backgroundColor = '#ffffff';
+                      e.target.style.borderColor = '#4a5568';
+                      e.target.style.boxShadow = '0 0 0 3px rgba(74, 85, 104, 0.15)';
+                      e.target.style.backgroundColor = '#2d3748';
                     }}
                     onBlur={(e) => {
-                      e.target.style.borderColor = '#9ca3af';
+                      e.target.style.borderColor = '#4a5568';
                       e.target.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.1)';
-                      e.target.style.backgroundColor = '#f3f4f6';
+                      e.target.style.backgroundColor = '#343B4A';
                     }}
                   />
                 </div>
@@ -227,9 +227,9 @@ const TopNavigationBar: React.FC = () => {
                     onChange={handleSearchChange}
                     style={{
                       borderRadius: '25px',
-                      border: '2px solid #9ca3af',
-                      backgroundColor: '#f3f4f6',
-                      color: '#374151',
+                      border: '2px solid #4a5568',
+                      backgroundColor: '#343B4A',
+                      color: '#ffffff !important',
                       fontWeight: '400',
                       padding: '0.45rem 1rem 0.45rem 2.5rem',
                       fontSize: '0.875rem',
@@ -238,11 +238,11 @@ const TopNavigationBar: React.FC = () => {
                       boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
                     }}
                     onFocus={(e) => {
-                      e.target.style.borderColor = '#3b82f6';
-                      e.target.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.1)';
+                      e.target.style.borderColor = '#4a5568';
+                      e.target.style.boxShadow = '0 0 0 3px rgba(74, 85, 104, 0.15)';
                     }}
                     onBlur={(e) => {
-                      e.target.style.borderColor = '#9ca3af';
+                      e.target.style.borderColor = '#4a5568';
                       e.target.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.1)';
                     }}
                   />
