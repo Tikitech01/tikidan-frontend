@@ -247,9 +247,21 @@ const VerticalNavigationBar: React.FC = () => {
         backgroundColor: '#ffffff',
         borderRight: '1px solid #e2e8f0',
         boxShadow: '4px 0 20px rgba(0, 0, 0, 0.08)',
-        padding: '20px 0'
+        padding: '20px 0',
+        height: '100%',
+        overflow: 'hidden'
       }}
     >
+      <div 
+        className="sidebar-content sidebar-scroll-hide"
+        style={{
+          height: '100%',
+          overflowY: 'auto',
+          overflowX: 'hidden',
+          paddingRight: '20px',
+          marginRight: '-20px'
+        }}
+      >
       <div 
         className="side-nav"
         style={{
@@ -271,6 +283,7 @@ const VerticalNavigationBar: React.FC = () => {
         
         {/* Account Menu Section */}
         {renderMenuSection('MY ACCOUNT', menuItems.accountMenu, 'account')}
+      </div>
       </div>
     </div>
   );

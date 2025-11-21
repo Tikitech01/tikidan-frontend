@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Card, Table, Button, Form, InputGroup, Badge, Dropdown, Modal, Row, Col } from 'react-bootstrap';
 import { Icon } from '@iconify/react';
-import PageTitle from '../components/PageTitle';
 import AddEmployeeForm from '../components/AddEmployeeForm';
 
 // Types
@@ -202,17 +201,17 @@ const Employees: React.FC = () => {
 
   return (
     <>
-      <PageTitle 
-        title="Employee Management"
-        subtitle="Manage your team members and their information"
-        icon="mdi:account-supervisor"
-      />
+      {/* Full Width Employee Management Bar */}
+      <div className="employee-management-bar">
+        <div className="employee-management-content">
+          <h1 className="employee-management-title">Employee Management</h1>
+        </div>
+      </div>
 
       <Card className="border-0 shadow-sm">
         <Card.Header className="d-flex justify-content-between align-items-center bg-transparent border-0">
           <div>
             <h5 className="mb-0 fw-semibold">Employees</h5>
-            <small className="text-muted">Manage team members and their information</small>
           </div>
           <Button 
             variant="primary" 

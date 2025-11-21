@@ -43,3 +43,140 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(156, 163, 175, 0.6);
 }
+
+/* Employee Management Full-Width Bar */
+.employee-management-bar {
+  width: 80rem;
+  height: 3.4rem;
+  position: relative;
+  background: white;
+  color: #333;
+  padding: 0.5rem 0;
+  margin-top: -1.5rem;
+  margin-bottom: 0.75rem;
+  margin-left: -16px;
+  box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  z-index: 500;
+  
+  border: 1px solid #e9ecef;
+}
+
+.employee-management-content {
+  width: 100%;
+  max-width: none;
+  text-align: left;
+  padding: 0 1rem;
+  box-sizing: border-box;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+}
+
+.employee-management-title {
+  font-size: 1.4rem;
+  font-weight: 500;
+  margin: 0;
+  color: #333;
+  text-shadow: none;
+  display: inline-block;
+  width: 100%;
+  letter-spacing: -0.025em;
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 768px) {
+  .employee-management-bar {
+    padding: 0.15rem 0;
+    margin-top: -1.25rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .employee-management-content {
+    padding: 0 1rem;
+  }
+  
+  .employee-management-title {
+    font-size: 1.25rem;
+  }
+}
+
+/* Auto-hiding scrollbar styles for sidebar */
+.sidebar-auto-hide-scroll {
+  scrollbar-width: none; /* Firefox - completely hide */
+  -ms-overflow-style: none; /* Internet Explorer 10+ - completely hide */
+  overflow-y: auto;
+}
+
+.sidebar-auto-hide-scroll::-webkit-scrollbar {
+  width: 6px;
+  display: none; /* Chrome, Safari, Opera - completely hide */
+}
+
+.sidebar-auto-hide-scroll:hover::-webkit-scrollbar {
+  display: block; /* Show on hover */
+}
+
+.sidebar-auto-hide-scroll:active::-webkit-scrollbar {
+  display: block; /* Show when actively scrolling */
+}
+
+.sidebar-auto-hide-scroll:hover::-webkit-scrollbar-thumb {
+  background: rgba(156, 163, 175, 0.4);
+  border-radius: 3px;
+}
+
+.sidebar-auto-hide-scroll:active::-webkit-scrollbar-thumb {
+  background: rgba(156, 163, 175, 0.6);
+}
+
+.sidebar-auto-hide-scroll:hover::-webkit-scrollbar-track {
+  background: rgba(243, 244, 246, 0.8);
+  border-radius: 3px;
+}
+
+.sidebar-auto-hide-scroll:active::-webkit-scrollbar-track {
+  background: rgba(243, 244, 246, 0.9);
+  border-radius: 3px;
+}
+
+/* Complete scrollbar hiding for sidebar */
+.sidebar-scroll-hide {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE 10+ */
+  overflow-y: auto !important;
+}
+
+.sidebar-scroll-hide::-webkit-scrollbar {
+  display: none !important; /* WebKit */
+  width: 0 !important; /* Extra safety for Chrome */
+  height: 0 !important; /* Extra safety for Chrome */
+}
+
+.sidebar-scroll-hide::-webkit-scrollbar-thumb {
+  display: none !important;
+  background: none !important;
+}
+
+.sidebar-scroll-hide::-webkit-scrollbar-track {
+  display: none !important;
+  background: none !important;
+}
+
+/* Force hide scrollbar completely */
+.sidebar-scroll-hide {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
+/* Additional hiding for all webkit browsers */
+.sidebar-scroll-hide * {
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
+}
+
+.sidebar-scroll-hide *::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
