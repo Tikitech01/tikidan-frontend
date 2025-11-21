@@ -22,7 +22,7 @@ const TopNavigationBar: React.FC = () => {
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as Element;
-      if (!target.closest('.profile-dropdown')) {
+      if (!target.closest('.profile-section')) {
         setShowProfileDropdown(false);
       }
     };
@@ -310,7 +310,25 @@ const TopNavigationBar: React.FC = () => {
             </Nav.Item>
 
             {/* User Profile Section */}
-            <div className="d-flex align-items-center gap-3" style={{ backgroundColor: '#4a5568', height: '64px', margin: '-10px 8px 4px 8px', padding: '0 20px', borderRadius: '2px' }}>
+            <div 
+              className="d-flex align-items-center gap-3 profile-section position-relative" 
+              style={{ 
+                backgroundColor: '#4a5568', 
+                height: '64px', 
+                margin: '-10px 8px 4px 8px', 
+                padding: '0 20px', 
+                borderRadius: '2px', 
+                cursor: 'pointer',
+                transition: 'background-color 0.2s ease'
+              }}
+              onClick={() => setShowProfileDropdown(!showProfileDropdown)}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = '#5a6678';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = '#4a5568';
+              }}
+            >
               {/* User Info Display */}
               <div className="d-flex align-items-center gap-2">
                 {/* User Avatar */}
@@ -353,58 +371,62 @@ const TopNavigationBar: React.FC = () => {
               </div>
 
               {/* Menu Button */}
-              <div className="dropdown profile-dropdown">
-                <button 
-                  className="btn btn-link btn-sm p-0" 
-                  type="button" 
-                  onClick={() => setShowProfileDropdown(!showProfileDropdown)}
-                  style={{ color: '#ffffff' }}
+              <button 
+                className="btn btn-link btn-sm p-0" 
+                type="button" 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowProfileDropdown(!showProfileDropdown);
+                }}
+                style={{ color: '#ffffff' }}
+              >
+                <Icon icon="mdi:chevron-down" style={{ color: '#ffffff' }} />
+              </button>
+              {showProfileDropdown && (
+                <div 
+                  className="dropdown-menu show"
+                  style={{
+                    position: 'absolute',
+                    top: 'calc(100% - 4px)',
+                    left: '20px',
+                    zIndex: 9999,
+                    minWidth: '180px',
+                    backgroundColor: '#ffffff',
+                    border: '1px solid #e2e8f0',
+                    borderRadius: '8px',
+                    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.15)',
+                    fontFamily: 'var(--greeva-font-sans-serif)'
+                  }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowProfileDropdown(false);
+                  }}
                 >
-                  <Icon icon="mdi:chevron-down" style={{ color: '#ffffff' }} />
-                </button>
-                {showProfileDropdown && (
-                  <div 
-                    className="dropdown-menu dropdown-menu-end show"
-                    style={{
-                      position: 'absolute',
-                      top: '100%',
-                      right: 0,
-                      zIndex: 9999,
-                      minWidth: '180px',
-                      backgroundColor: '#ffffff',
-                      border: '1px solid #e2e8f0',
-                      borderRadius: '8px',
-                      boxShadow: '0 8px 32px rgba(0, 0, 0, 0.15)',
-                      fontFamily: 'var(--greeva-font-sans-serif)'
-                    }}
-                    onClick={() => setShowProfileDropdown(false)}
+                  <Link 
+                    className="dropdown-item d-flex align-items-center" 
+                    to="/profile"
+                    style={{ fontFamily: 'var(--greeva-font-sans-serif)' }}
                   >
-                    <Link 
-                      className="dropdown-item d-flex align-items-center" 
-                      to="/profile"
-                      style={{ fontFamily: 'var(--greeva-font-sans-serif)' }}
-                    >
-                      <Icon icon="mdi:account" className="me-2" /> Profile
-                    </Link>
-                    <button 
-                      className="dropdown-item d-flex align-items-center" 
-                      type="button"
-                      style={{ fontFamily: 'var(--greeva-font-sans-serif)' }}
-                    >
-                      <Icon icon="mdi:cog" className="me-2" /> Settings
-                    </button>
-                    <div className="dropdown-divider"></div>
-                    <button 
-                      className="dropdown-item d-flex align-items-center" 
-                      type="button" 
-                      onClick={handleLogout}
-                      style={{ fontFamily: 'var(--greeva-font-sans-serif)' }}
-                    >
-                      <Icon icon="mdi:logout" className="me-2" /> Logout
-                    </button>
-                  </div>
-                )}
-              </div>
+                    <Icon icon="mdi:account" className="me-2" /> Profile
+                  </Link>
+                  <button 
+                    className="dropdown-item d-flex align-items-center" 
+                    type="button"
+                    style={{ fontFamily: 'var(--greeva-font-sans-serif)' }}
+                  >
+                    <Icon icon="mdi:cog" className="me-2" /> Settings
+                  </button>
+                  <div className="dropdown-divider"></div>
+                  <button 
+                    className="dropdown-item d-flex align-items-center" 
+                    type="button" 
+                    onClick={handleLogout}
+                    style={{ fontFamily: 'var(--greeva-font-sans-serif)' }}
+                  >
+                    <Icon icon="mdi:logout" className="me-2" /> Logout
+                  </button>
+                </div>
+              )}
             </div>
           </Nav>
         </Navbar.Collapse>

@@ -9,7 +9,8 @@ interface Employee {
   name: string;
   role: string;
   reportingTo: string;
-  status: 'Active' | 'Inactive';
+  status: 'Active' | 'Inactive' | 'Suspended by Admin';
+  suspensionReason?: string;
   allMeetings: number;
   mostVisitedCategory: string;
   phone: string;
@@ -24,11 +25,29 @@ const Employees: React.FC = () => {
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [editingEmployeeId, setEditingEmployeeId] = useState<string | undefined>(undefined);
+  const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
 
   // Fetch employees from backend
   React.useEffect(() => {
     fetchEmployees();
   }, []);
+
+  // Close dropdown when clicking outside
+  React.useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Element;
+      if (!target.closest('.employee-dropdown')) {
+        setOpenDropdownId(null);
+      }
+    };
+
+    if (openDropdownId) {
+      document.addEventListener('click', handleClickOutside);
+      return () => {
+        document.removeEventListener('click', handleClickOutside);
+      };
+    }
+  }, [openDropdownId]);
 
   const fetchEmployees = async () => {
     try {
@@ -90,7 +109,7 @@ const Employees: React.FC = () => {
                   emp.role.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())
                 ) : 'N/A',
               reportingTo: reportingTo,
-              status: 'Active', // Default to active
+              status: emp.status || 'Active', // Map backend status or default to active
               allMeetings: 0, // Placeholder - will be implemented later
               mostVisitedCategory: 'N/A', // Placeholder - will be implemented later
               phone: emp.mobile || 'N/A',
@@ -124,8 +143,12 @@ const Employees: React.FC = () => {
         return sortDirection === 'asc' ? aValue - bValue : bValue - aValue;
       }
       
-      if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
-      if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
+      // Handle string comparison
+      const aStr = String(aValue || '');
+      const bStr = String(bValue || '');
+      
+      if (aStr < bStr) return sortDirection === 'asc' ? -1 : 1;
+      if (aStr > bStr) return sortDirection === 'asc' ? 1 : -1;
       return 0;
     });
   }, [employees, searchTerm, sortField, sortDirection]);
@@ -189,6 +212,76 @@ const Employees: React.FC = () => {
     setShowAddDialog(true);
   };
 
+  const handleSuspendEmployee = async (id: string) => {
+    if (window.confirm('Are you sure you want to suspend this employee?')) {
+      try {
+        const token = localStorage.getItem('token');
+        
+        if (!token) {
+          console.error('No token found');
+          return;
+        }
+
+        const response = await fetch(`http://localhost:5000/api/auth/employees/${id}/suspend`, {
+          method: 'PATCH',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+          // Update employee status in local state
+          setEmployees(employees.map(emp => 
+            emp.id === id ? { ...emp, status: 'Suspended by Admin' } : emp
+          ));
+        } else {
+          console.error('Failed to suspend employee:', data.message);
+          alert('Failed to suspend employee: ' + data.message);
+        }
+      } catch (error) {
+        console.error('Error suspending employee:', error);
+        alert('Error suspending employee. Please try again.');
+      }
+    }
+  };
+
+  const handleUnsuspendEmployee = async (id: string) => {
+    try {
+      const token = localStorage.getItem('token');
+      
+      if (!token) {
+        console.error('No token found');
+        return;
+      }
+
+      const response = await fetch(`http://localhost:5000/api/auth/employees/${id}/unsuspend`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        // Update employee status in local state
+        setEmployees(employees.map(emp => 
+          emp.id === id ? { ...emp, status: 'Active' } : emp
+        ));
+      } else {
+        console.error('Failed to unsuspend employee:', data.message);
+        alert('Failed to unsuspend employee: ' + data.message);
+      }
+    } catch (error) {
+      console.error('Error unsuspending employee:', error);
+      alert('Error unsuspending employee. Please try again.');
+    }
+  };
+
   // Get employee initials for avatar
   const getEmployeeInitials = (name: string) => {
     return name
@@ -201,6 +294,14 @@ const Employees: React.FC = () => {
 
   return (
     <>
+      {/* Custom CSS to hide dropdown arrow */}
+      <style>
+        {`
+          .no-arrow::after {
+            display: none !important;
+          }
+        `}
+      </style>
       {/* Full Width Employee Management Bar */}
       <div className="employee-management-bar">
         <div className="employee-management-content">
@@ -281,7 +382,10 @@ const Employees: React.FC = () => {
                     </td>
                     <td>
                       <Badge 
-                        bg={employee.status === 'Active' ? 'success' : 'secondary'}
+                        bg={
+                          employee.status === 'Active' ? 'success' : 
+                          employee.status === 'Suspended by Admin' ? 'warning' : 'secondary'
+                        }
                         className="px-2 py-1"
                       >
                         {employee.status}
@@ -300,21 +404,60 @@ const Employees: React.FC = () => {
                       </div>
                     </td>
                     <td>
-                      <div className="d-flex justify-content-center gap-2">
-                        <Button
-                          variant="outline-primary"
-                          size="sm"
-                          onClick={() => handleEditEmployee(employee.id)}
+                      <div className="d-flex justify-content-center">
+                        <Dropdown 
+                          show={openDropdownId === employee.id} 
+                          onToggle={(isOpen) => {
+                            setOpenDropdownId(isOpen ? employee.id : null);
+                          }}
+                          className="employee-dropdown"
                         >
-                          <Icon icon="mdi:pencil" />
-                        </Button>
-                        <Button
-                          variant="outline-danger"
-                          size="sm"
-                          onClick={() => handleDeleteEmployee(employee.id)}
-                        >
-                          <Icon icon="mdi:delete" />
-                        </Button>
+                          <Dropdown.Toggle
+                            variant="link"
+                            className="text-muted p-0 border-0 no-arrow"
+                            style={{ boxShadow: 'none' }}
+                          >
+                            <Icon icon="mdi:dots-vertical" width="20" height="20" />
+                          </Dropdown.Toggle>
+
+                          <Dropdown.Menu align="end">
+                            <Dropdown.Item onClick={() => {
+                              handleEditEmployee(employee.id);
+                              setOpenDropdownId(null);
+                            }}>
+                              <Icon icon="mdi:pencil" className="me-2" />
+                              Edit
+                            </Dropdown.Item>
+                            {employee.status === 'Suspended by Admin' ? (
+                              <Dropdown.Item onClick={() => {
+                                handleUnsuspendEmployee(employee.id);
+                                setOpenDropdownId(null);
+                              }}>
+                                <Icon icon="mdi:account-check" className="me-2" />
+                                Activate
+                              </Dropdown.Item>
+                            ) : (
+                              <Dropdown.Item onClick={() => {
+                                handleSuspendEmployee(employee.id);
+                                setOpenDropdownId(null);
+                              }}>
+                                <Icon icon="mdi:account-off" className="me-2" />
+                                Suspend
+                              </Dropdown.Item>
+                            )}
+                            <Dropdown.Divider />
+                            <Dropdown.Item 
+                              className="text-danger"
+                              onClick={() => {
+                                handleDeleteEmployee(employee.id);
+                                setOpenDropdownId(null);
+                              }}
+                            >
+                              <Icon icon="mdi:delete" className="me-2" />
+                              Delete
+                            </Dropdown.Item>
+                          </Dropdown.Menu>
+                        </Dropdown>
                       </div>
                     </td>
                   </tr>

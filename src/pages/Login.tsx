@@ -53,7 +53,12 @@ const Login: React.FC = () => {
         localStorage.setItem('user', JSON.stringify(data.user));
         navigate('/reports');
       } else {
-        setError(data.message || 'Login failed');
+        // Check if the error is related to suspension
+        if (data.message && data.message.toLowerCase().includes('suspend')) {
+          setError('You have been suspended. Please approach your admin.');
+        } else {
+          setError(data.message || 'Login failed');
+        }
       }
     } catch (err) {
       setError('Server error. Please try again later.');
@@ -86,7 +91,12 @@ const Login: React.FC = () => {
         localStorage.setItem('user', JSON.stringify(data.user));
         navigate('/reports');
       } else {
-        setError(data.message || 'Admin login failed');
+        // Check if the error is related to suspension
+        if (data.message && data.message.toLowerCase().includes('suspend')) {
+          setError('You have been suspended. Please approach your admin.');
+        } else {
+          setError(data.message || 'Admin login failed');
+        }
       }
     } catch (err) {
       setError('Server error. Please try again later.');

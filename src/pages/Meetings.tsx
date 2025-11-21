@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Typography,
@@ -11,10 +11,10 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Paper,
   Chip,
   IconButton,
-  Fab,
+  Dialog,
+  DialogContent,
 } from '@mui/material';
 import {
   Add,
@@ -24,8 +24,11 @@ import {
   LocationOn,
   MoreVert,
 } from '@mui/icons-material';
+import AddMeetingForm from '../components/AddMeetingForm';
 
 const Meetings: React.FC = () => {
+  const [openDialog, setOpenDialog] = useState(false);
+  
   // Empty meetings data
   const meetings: any[] = [];
 
@@ -42,6 +45,19 @@ const Meetings: React.FC = () => {
     }
   };
 
+  const handleOpenDialog = () => {
+    setOpenDialog(true);
+  };
+
+  const handleCloseDialog = () => {
+    setOpenDialog(false);
+  };
+
+  const handleSaveMeeting = (data: any) => {
+    console.log('Meeting saved:', data);
+    // Here you would typically update your meetings list
+  };
+
   return (
     <>
       {/* Full Width Meetings Management Bar */}
@@ -55,34 +71,37 @@ const Meetings: React.FC = () => {
         backgroundColor: '#fafbfc', 
         minHeight: '100vh', 
         p: 3,
-        borderRadius: 2
+        borderRadius: 2,
+        position: 'relative'
       }}>
-      {/* Header */}
-      <Box sx={{ mb: 3 }}>
-        <Typography variant="h4" sx={{ mb: 1, fontWeight: 600, color: '#2c3e50' }}>
-          Meetings
-        </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ color: '#64748b' }}>
-          Manage your meetings and schedule
-        </Typography>
+      {/* Header with Plus Icon */}
+      <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <Box>
+          <Typography variant="h4" sx={{ mb: 1, fontWeight: 600, color: '#2c3e50' }}>
+            Meetings
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ color: '#64748b' }}>
+            Manage your meetings and schedule
+          </Typography>
+        </Box>
+        <IconButton
+          onClick={handleOpenDialog}
+          sx={{ 
+            backgroundColor: '#3b82f6',
+            color: 'white',
+            '&:hover': {
+              backgroundColor: '#2563eb',
+            },
+            width: 56,
+            height: 56,
+          }}
+        >
+          <Add sx={{ fontSize: 32 }} />
+        </IconButton>
       </Box>
 
       {/* Action Buttons */}
       <Box sx={{ mb: 3, display: 'flex', gap: 2 }}>
-        <Button
-          variant="contained"
-          startIcon={<Add />}
-          sx={{ 
-            borderRadius: 2, 
-            backgroundColor: '#3b82f6',
-            '&:hover': {
-              backgroundColor: '#2563eb',
-            },
-            textTransform: 'none'
-          }}
-        >
-          Schedule Meeting
-        </Button>
         <Button
           variant="outlined"
           startIcon={<CalendarMonth />}
@@ -171,84 +190,96 @@ const Meetings: React.FC = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {meetings.map((meeting) => (
-                  <TableRow key={meeting.id} hover>
-                    <TableCell>
-                      <Box>
-                        <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-                          {meeting.title}
-                        </Typography>
-                        <Box sx={{ display: 'flex', alignItems: 'center', mt: 0.5 }}>
-                          <AccessTime sx={{ fontSize: 14, color: 'text.secondary', mr: 0.5 }} />
-                          <Typography variant="caption" color="text.secondary">
-                            {meeting.time}
-                          </Typography>
-                        </Box>
-                      </Box>
-                    </TableCell>
-                    <TableCell>
-                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                        <Person sx={{ fontSize: 16, color: 'text.secondary', mr: 1 }} />
-                        <Typography variant="body2">
-                          {meeting.client}
-                        </Typography>
-                      </Box>
-                    </TableCell>
-                    <TableCell>
-                      <Typography variant="body2">
-                        {meeting.date}
+                {meetings.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={7} align="center" sx={{ py: 4 }}>
+                      <Typography variant="body2" color="text.secondary">
+                        No meetings scheduled yet. Click "Schedule Meeting" to add one.
                       </Typography>
                     </TableCell>
-                    <TableCell>
-                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                        <LocationOn sx={{ fontSize: 16, color: 'text.secondary', mr: 1 }} />
-                        <Typography variant="body2">
-                          {meeting.location}
-                        </Typography>
-                      </Box>
-                    </TableCell>
-                    <TableCell>
-                      <Chip
-                        label={meeting.type}
-                        size="small"
-                        variant="outlined"
-                        sx={{ borderRadius: 1 }}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Chip
-                        label={meeting.status}
-                        size="small"
-                        color={getStatusColor(meeting.status) as any}
-                        sx={{ borderRadius: 1, textTransform: 'capitalize' }}
-                      />
-                    </TableCell>
-                    <TableCell align="right">
-                      <IconButton size="small">
-                        <MoreVert />
-                      </IconButton>
-                    </TableCell>
                   </TableRow>
-                ))}
+                ) : (
+                  meetings.map((meeting) => (
+                    <TableRow key={meeting.id} hover>
+                      <TableCell>
+                        <Box>
+                          <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                            {meeting.title}
+                          </Typography>
+                          <Box sx={{ display: 'flex', alignItems: 'center', mt: 0.5 }}>
+                            <AccessTime sx={{ fontSize: 14, color: 'text.secondary', mr: 0.5 }} />
+                            <Typography variant="caption" color="text.secondary">
+                              {meeting.time}
+                            </Typography>
+                          </Box>
+                        </Box>
+                      </TableCell>
+                      <TableCell>
+                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                          <Person sx={{ fontSize: 16, color: 'text.secondary', mr: 1 }} />
+                          <Typography variant="body2">
+                            {meeting.client}
+                          </Typography>
+                        </Box>
+                      </TableCell>
+                      <TableCell>
+                        <Typography variant="body2">
+                          {meeting.date}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                          <LocationOn sx={{ fontSize: 16, color: 'text.secondary', mr: 1 }} />
+                          <Typography variant="body2">
+                            {meeting.location}
+                          </Typography>
+                        </Box>
+                      </TableCell>
+                      <TableCell>
+                        <Chip
+                          label={meeting.type}
+                          size="small"
+                          variant="outlined"
+                          sx={{ borderRadius: 1 }}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Chip
+                          label={meeting.status}
+                          size="small"
+                          color={getStatusColor(meeting.status) as any}
+                          sx={{ borderRadius: 1, textTransform: 'capitalize' }}
+                        />
+                      </TableCell>
+                      <TableCell align="right">
+                        <IconButton size="small">
+                          <MoreVert />
+                        </IconButton>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
               </TableBody>
             </Table>
           </TableContainer>
         </CardContent>
       </Card>
-
-      {/* Floating Action Button */}
-      <Fab
-        color="primary"
-        aria-label="add meeting"
-        sx={{
-          position: 'fixed',
-          bottom: 16,
-          right: 16,
-        }}
-      >
-        <Add />
-      </Fab>
     </Box>
+
+    {/* Meeting Form Dialog */}
+    <Dialog 
+      open={openDialog} 
+      onClose={handleCloseDialog}
+      maxWidth="md"
+      fullWidth
+    >
+      <DialogContent sx={{ p: 0 }}>
+        <AddMeetingForm 
+          onClose={handleCloseDialog}
+          onSave={handleSaveMeeting}
+        />
+      </DialogContent>
+    </Dialog>
     </>
   );
 };
