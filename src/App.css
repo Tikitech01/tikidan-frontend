@@ -74,14 +74,18 @@ body {
 }
 
 .employee-management-title {
-  font-size: 1.4rem;
-  font-weight: 500;
+  color: rgb(76, 76, 92);
+  font-family: Barlow, sans-serif;
+  font-size: 1.2rem;
+  font-weight: 600;
+  line-height: 21.6px;
   margin: 0;
-  color: #333;
-  text-shadow: none;
-  display: inline-block;
+  padding: 8px 24px;
+  display: flex;
+  align-items: center;
   width: 100%;
-  letter-spacing: -0.025em;
+  height: auto;
+  text-align: start;
 }
 
 /* Mobile responsive adjustments */

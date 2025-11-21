@@ -80,11 +80,12 @@ const Reports: React.FC = () => {
 
   return (
     <>
-      <PageTitle 
-        title="Reports Dashboard"
-        subtitle="Overview of business metrics and analytics"
-        icon="mdi:chart-line"
-      />
+      {/* Full Width Reports Management Bar */}
+      <div className="employee-management-bar">
+        <div className="employee-management-content">
+          <h1 className="employee-management-title">REPORTS</h1>
+        </div>
+      </div>
 
       <Row className="g-3 mb-4">
         {stats.map((stat, index) => (

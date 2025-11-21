@@ -204,7 +204,7 @@ const Employees: React.FC = () => {
       {/* Full Width Employee Management Bar */}
       <div className="employee-management-bar">
         <div className="employee-management-content">
-          <h1 className="employee-management-title">Employee Management</h1>
+          <h1 className="employee-management-title">EMPLOYEES</h1>
         </div>
       </div>
 

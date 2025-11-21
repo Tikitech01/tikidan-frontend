@@ -43,12 +43,20 @@ const Meetings: React.FC = () => {
   };
 
   return (
-    <Box sx={{ 
-      backgroundColor: '#fafbfc', 
-      minHeight: '100vh', 
-      p: 3,
-      borderRadius: 2
-    }}>
+    <>
+      {/* Full Width Meetings Management Bar */}
+      <div className="employee-management-bar">
+        <div className="employee-management-content">
+          <h1 className="employee-management-title">MEETINGS</h1>
+        </div>
+      </div>
+
+      <Box sx={{ 
+        backgroundColor: '#fafbfc', 
+        minHeight: '100vh', 
+        p: 3,
+        borderRadius: 2
+      }}>
       {/* Header */}
       <Box sx={{ mb: 3 }}>
         <Typography variant="h4" sx={{ mb: 1, fontWeight: 600, color: '#2c3e50' }}>
@@ -241,6 +249,7 @@ const Meetings: React.FC = () => {
         <Add />
       </Fab>
     </Box>
+    </>
   );
 };
 

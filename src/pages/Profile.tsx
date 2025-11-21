@@ -100,11 +100,19 @@ const Profile: React.FC = () => {
   }
 
   return (
-    <Box sx={{ 
-      p: 1.5, 
-      backgroundColor: '#fafbfc', 
-      minHeight: '100vh'
-    }}>
+    <>
+      {/* Full Width Profile Management Bar */}
+      <div className="employee-management-bar">
+        <div className="employee-management-content">
+          <h1 className="employee-management-title">PROFILE</h1>
+        </div>
+      </div>
+
+      <Box sx={{ 
+        p: 1.5, 
+        backgroundColor: '#fafbfc', 
+        minHeight: '100vh'
+      }}>
       {/* Header */}
       <Box sx={{ mb: 2 }}>
         <Typography 
@@ -490,6 +498,7 @@ const Profile: React.FC = () => {
         </Card>
       </Box>
     </Box>
+    </>
   );
 };
 

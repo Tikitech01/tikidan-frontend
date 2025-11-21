@@ -122,7 +122,15 @@ const Team: React.FC = () => {
   }
 
   return (
-    <Container maxWidth="lg" sx={{ mt: 2, mb: 2 }}>
+    <>
+      {/* Full Width Team Management Bar */}
+      <div className="employee-management-bar">
+        <div className="employee-management-content">
+          <h1 className="employee-management-title">TEAM</h1>
+        </div>
+      </div>
+
+      <Container maxWidth="lg" sx={{ mt: 2, mb: 2 }}>
       <Card
         elevation={1}
         sx={{
@@ -273,6 +281,7 @@ const Team: React.FC = () => {
         </CardContent>
       </Card>
     </Container>
+    </>
   );
 };
 
