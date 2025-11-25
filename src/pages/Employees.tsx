@@ -26,6 +26,79 @@ const Employees: React.FC = () => {
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [editingEmployeeId, setEditingEmployeeId] = useState<string | undefined>(undefined);
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
+  // Transfer dialog state
+  const [showTransferDialog, setShowTransferDialog] = useState(false);
+  const [employeeToTransfer, setEmployeeToTransfer] = useState<Employee | null>(null);
+  const [clientsToTransfer, setClientsToTransfer] = useState<any[]>([]);
+  const [selectedNewEmployeeId, setSelectedNewEmployeeId] = useState<string>('');
+  const [transferLoading, setTransferLoading] = useState(false);
+
+  // Helper: fetch clients for an employee
+  const fetchClientsForEmployee = async (employeeId: string) => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return [];
+      // Use a dedicated endpoint to get clients by employee
+      const clientsResponse = await fetch(`http://localhost:5000/api/clients`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await clientsResponse.json();
+      if (data.success && Array.isArray(data.data)) {
+        console.log('DEBUG: employeeId for filter:', employeeId);
+        console.log('DEBUG: All client createdBy values:', data.data.map((c: any) => c.createdBy));
+        return data.data.filter((client: any) => client.createdBy === employeeId);
+      }
+      return [];
+    } catch {
+      return [];
+    }
+  };
+
+  // API call to suspend employee
+  const suspendEmployeeApi = async (id: string) => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+      const response = await fetch(`http://localhost:5000/api/auth/employees/${id}/suspend`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+      const data = await response.json();
+      if (response.ok && data.success) {
+        setEmployees(employees.map(emp => emp.id === id ? { ...emp, status: 'Suspended by Admin' } : emp));
+      } else {
+        alert('Failed to suspend employee: ' + data.message);
+      }
+    } catch (error) {
+      alert('Error suspending employee. Please try again.');
+    }
+  };
+
+  // API call to delete employee
+  const deleteEmployeeApi = async (id: string) => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+      const response = await fetch(`http://localhost:5000/api/auth/employees/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+      const data = await response.json();
+      if (response.ok && data.success) {
+        setEmployees(employees.filter(emp => emp.id !== id));
+      } else {
+        alert('Failed to delete employee: ' + data.message);
+      }
+    } catch (error) {
+      alert('Error deleting employee. Please try again.');
+    }
+  };
 
   // Fetch employees from backend
   React.useEffect(() => {
@@ -192,6 +265,21 @@ const Employees: React.FC = () => {
 
         const data = await response.json();
 
+        console.log('DEBUG: handleDeleteEmployee called for', id);
+        const clients = await fetchClientsForEmployee(id);
+        alert(`DEBUG: Found ${clients.length} clients for employee ${id}`);
+        setTransferLoading(false);
+        if (clients.length > 0) {
+          // Show transfer dialog
+          const emp = employees.find(e => e.id === id) || null;
+          setEmployeeToTransfer(emp);
+          setClientsToTransfer(clients);
+          setShowTransferDialog(true);
+        } else {
+          // No clients, proceed to delete
+          await deleteEmployeeApi(id);
+        }
+
         if (response.ok && data.success) {
           // Remove employee from local state after successful deletion
           setEmployees(employees.filter(emp => emp.id !== id));
@@ -231,6 +319,21 @@ const Employees: React.FC = () => {
         });
 
         const data = await response.json();
+
+        console.log('DEBUG: handleSuspendEmployee called for', id);
+        const clients = await fetchClientsForEmployee(id);
+        alert(`DEBUG: Found ${clients.length} clients for employee ${id}`);
+        setTransferLoading(false);
+        if (clients.length > 0) {
+          // Show transfer dialog
+          const emp = employees.find(e => e.id === id) || null;
+          setEmployeeToTransfer(emp);
+          setClientsToTransfer(clients);
+          setShowTransferDialog(true);
+        } else {
+          // No clients, proceed to suspend
+          await suspendEmployeeApi(id);
+        }
 
         if (response.ok && data.success) {
           // Update employee status in local state
@@ -499,6 +602,73 @@ const Employees: React.FC = () => {
               fetchEmployees();
             }}
           />
+        </Modal.Body>
+      </Modal>
+
+      {/* Transfer Clients Modal */}
+      <Modal show={showTransferDialog} onHide={() => setShowTransferDialog(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Transfer Clients Before Action</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {transferLoading ? (
+            <div>Loading...</div>
+          ) : (
+            <>
+              <p>
+                Employee <b>{employeeToTransfer?.name}</b> has <b>{clientsToTransfer.length}</b> client(s). Please select another employee to transfer these clients before proceeding.
+              </p>
+              <Form.Group>
+                <Form.Label>Select New Employee</Form.Label>
+                <Form.Select value={selectedNewEmployeeId} onChange={e => setSelectedNewEmployeeId(e.target.value)}>
+                  <option value="">-- Select Employee --</option>
+                  {employees.filter(e => e.id !== employeeToTransfer?.id).map(e => (
+                    <option key={e.id} value={e.id}>{e.name}</option>
+                  ))}
+                </Form.Select>
+              </Form.Group>
+              <div className="mt-3">
+                <Button variant="primary" disabled={!selectedNewEmployeeId || transferLoading} onClick={async () => {
+                  // Transfer clients and then suspend/delete
+                  if (!employeeToTransfer || !selectedNewEmployeeId) return;
+                  setTransferLoading(true);
+                  try {
+                    const token = localStorage.getItem('token');
+                    for (const client of clientsToTransfer) {
+                      await fetch(`http://localhost:5000/api/clients/${client.id}/transfer`, {
+                        method: 'POST',
+                        headers: {
+                          'Authorization': `Bearer ${token}`,
+                          'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ toEmployeeId: selectedNewEmployeeId })
+                      });
+                    }
+                    // After transfer, suspend or delete
+                    if (employeeToTransfer.status === 'Suspended by Admin') {
+                      await deleteEmployeeApi(employeeToTransfer.id);
+                    } else {
+                      await suspendEmployeeApi(employeeToTransfer.id);
+                    }
+                    setShowTransferDialog(false);
+                    setEmployeeToTransfer(null);
+                    setClientsToTransfer([]);
+                    setSelectedNewEmployeeId('');
+                    fetchEmployees();
+                    alert('Clients transferred and action completed.');
+                  } catch (error) {
+                    alert('Error transferring clients. Please try again.');
+                  }
+                  setTransferLoading(false);
+                }}>
+                  Transfer & Continue
+                </Button>
+                <Button variant="secondary" className="ms-2" onClick={() => setShowTransferDialog(false)}>
+                  Cancel
+                </Button>
+              </div>
+            </>
+          )}
         </Modal.Body>
       </Modal>
     </>
