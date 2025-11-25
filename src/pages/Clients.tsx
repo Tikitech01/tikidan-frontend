@@ -125,9 +125,13 @@ const Clients: React.FC = () => {
   const confirmDeleteClient = async () => {
     if (clientToDelete) {
       try {
+        const token = localStorage.getItem('token');
         const response = await fetch(`http://localhost:5000/api/clients/${clientToDelete.id}`, {
           method: 'DELETE',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': token ? `Bearer ${token}` : ''
+          },
         });
 
         const result = await response.json();
