@@ -39,6 +39,7 @@ export interface Client {
   totalMeetings?: number;
   totalProjects?: number;
   locations?: BranchLocation[];
+  createdBy?: string;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -89,9 +90,13 @@ async function apiCall<T>(
 ): Promise<ApiResponse<T>> {
   const url = `${API_BASE_URL}${endpoint}`;
   
+  // Get authentication token from localStorage
+  const token = localStorage.getItem('token');
+  
   const config: RequestInit = {
     headers: {
       'Content-Type': 'application/json',
+      ...(token && { 'Authorization': `Bearer ${token}` }),
       ...options.headers,
     },
     ...options,

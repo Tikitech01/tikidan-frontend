@@ -359,7 +359,7 @@ const Clients: React.FC = () => {
                         </TableCell>
                         <TableCell>
                           <Typography variant="body2">
-                            Not Assigned
+                            {client.salesPerson ? client.salesPerson : 'Not Assigned'}
                           </Typography>
                         </TableCell>
                         <TableCell>
