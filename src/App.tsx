@@ -9,7 +9,6 @@ import Employees from './pages/Employees';
 import Profile from './pages/Profile';
 import Meetings from './pages/Meetings';
 import PlaceholderPage from './pages/PlaceholderPage';
-import { hasRouteAccess, fetchUserPermissions } from './services/permissionService';
 import './App.css';
 
 // Protected Route Component - Checks both authentication and permissions

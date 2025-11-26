@@ -1,14 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Nav, NavItem, NavLink, Collapse } from 'react-bootstrap';
 import { Icon } from '@iconify/react';
-import { fetchUserPermissions, generateMenuItems, type UserPermissions, type MenuItemConfig } from '../../services/permissionService';
+import { fetchUserPermissions, generateMenuItems, type MenuItemConfig } from '../../services/permissionService';
 
 const VerticalNavigationBar: React.FC = () => {
   const location = useLocation();
   const [expandedMenus, setExpandedMenus] = useState<string[]>([]);
-  const [currentUser, setCurrentUser] = useState<any>(null);
-  const [userPermissions, setUserPermissions] = useState<UserPermissions | null>(null);
   const [menuItems, setMenuItems] = useState<{
     mainMenu: MenuItemConfig[];
     expensesMenu: MenuItemConfig[];
@@ -28,7 +25,6 @@ const VerticalNavigationBar: React.FC = () => {
       const userData = localStorage.getItem('user');
       if (userData) {
         const user = JSON.parse(userData);
-        setCurrentUser(user);
         
         // If user has permissions in localStorage, use them; otherwise fetch from backend
         if (user.permissions) {
@@ -43,7 +39,6 @@ const VerticalNavigationBar: React.FC = () => {
           // Fetch permissions from backend
           fetchUserPermissions().then((permissions) => {
             if (permissions) {
-              setUserPermissions(permissions);
               const generatedMenus = generateMenuItems(permissions.permissions, user.role);
               setMenuItems({
                 mainMenu: generatedMenus.mainMenu,
@@ -95,7 +90,7 @@ const VerticalNavigationBar: React.FC = () => {
     return iconMap[permission] || 'mdi:view-dashboard';
   };
 
-  const toggleMenu = (menuId: string) => {
+  const _toggleMenu = (menuId: string) => {
     setExpandedMenus(prev => 
       prev.includes(menuId) 
         ? prev.filter(id => id !== menuId)
@@ -107,7 +102,7 @@ const VerticalNavigationBar: React.FC = () => {
     return path ? location.pathname === path : false;
   };
 
-  const isExpanded = (menuId: string) => {
+  const _isExpanded = (menuId: string) => {
     return expandedMenus.includes(menuId);
   };
 

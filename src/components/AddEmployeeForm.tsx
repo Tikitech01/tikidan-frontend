@@ -19,13 +19,6 @@ import {
   Cancel as CancelIcon,
 } from '@mui/icons-material';
 
-const REPORTING_OPTIONS = [
-  { value: 'self', label: 'Self' },
-  { value: 'manager', label: 'Manager' },
-  { value: 'supervisor', label: 'Supervisor' },
-  { value: 'director', label: 'Director' },
-];
-
 const DEPARTMENT_OPTIONS = [
   { value: 'sales', label: 'Sales' },
   { value: 'marketing', label: 'Marketing' },
