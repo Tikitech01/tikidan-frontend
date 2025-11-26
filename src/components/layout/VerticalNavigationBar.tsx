@@ -5,7 +5,6 @@ import { fetchUserPermissions, generateMenuItems, type MenuItemConfig } from '..
 
 const VerticalNavigationBar: React.FC = () => {
   const location = useLocation();
-  const [expandedMenus, setExpandedMenus] = useState<string[]>([]);
   const [menuItems, setMenuItems] = useState<{
     mainMenu: MenuItemConfig[];
     expensesMenu: MenuItemConfig[];
@@ -90,20 +89,8 @@ const VerticalNavigationBar: React.FC = () => {
     return iconMap[permission] || 'mdi:view-dashboard';
   };
 
-  const _toggleMenu = (menuId: string) => {
-    setExpandedMenus(prev => 
-      prev.includes(menuId) 
-        ? prev.filter(id => id !== menuId)
-        : [...prev, menuId]
-    );
-  };
-
   const isActive = (path?: string) => {
     return path ? location.pathname === path : false;
-  };
-
-  const _isExpanded = (menuId: string) => {
-    return expandedMenus.includes(menuId);
   };
 
   const renderMenuItem = (item: MenuItemConfig, index: number) => {
