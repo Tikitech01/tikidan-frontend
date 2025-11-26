@@ -33,7 +33,7 @@ import {
 import AddClientForm from '../components/AddClientForm';
 import ClientDetailsDialog from '../components/ClientDetailsDialog';
 import ClientHistoryDialog from '../components/ClientHistoryDialog';
-import { clientApi } from '../services/api';
+import { clientApi, getApiUrl } from '../services/api';
 import type { Client } from '../services/api';
 
 const Clients: React.FC = () => {
@@ -45,8 +45,16 @@ const Clients: React.FC = () => {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [clientToDelete, setClientToDelete] = useState<Client | null>(null);
   
+  // Transfer dialog for admins
+  const [transferDialogOpen, setTransferDialogOpen] = useState(false);
+  const [clientToTransfer, setClientToTransfer] = useState<Client | null>(null);
+  const [selectedEmployeeId, setSelectedEmployeeId] = useState<string>('');
+  const [employees, setEmployees] = useState<any[]>([]);
+  const [transferLoading, setTransferLoading] = useState(false);
+  
   // Clients state
   const [clients, setClients] = useState<Client[]>([]);
+  const [userRole, setUserRole] = useState<string>('');
 
   // Load clients from API
   useEffect(() => {
@@ -70,7 +78,36 @@ const Clients: React.FC = () => {
       }
     };
 
+    // Get user role from localStorage
+    const userData = localStorage.getItem('user');
+    if (userData) {
+      const user = JSON.parse(userData);
+      setUserRole(user.role || '');
+    }
+
+    // Fetch employees if admin
+    const fetchEmployees = async () => {
+      try {
+        const userData = localStorage.getItem('user');
+        const user = userData ? JSON.parse(userData) : null;
+        
+        if (user?.role === 'admin') {
+          const token = localStorage.getItem('token');
+          const response = await fetch(`${getApiUrl().replace('/api', '')}/auth/employees`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          const data = await response.json();
+          if (data.success && Array.isArray(data.employees)) {
+            setEmployees(data.employees);
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching employees:', err);
+      }
+    };
+
     fetchClients();
+    fetchEmployees();
   }, []);
 
   // Debug logging for clients state changes
@@ -118,6 +155,66 @@ const Clients: React.FC = () => {
       setDeleteConfirmOpen(true);
     }
     handleMenuClose();
+  };
+
+  const handleTransferClient = () => {
+    if (selectedClient && userRole === 'admin') {
+      setClientToTransfer(selectedClient);
+      setTransferDialogOpen(true);
+    }
+    handleMenuClose();
+  };
+
+  const confirmTransferClient = async () => {
+    if (clientToTransfer && selectedEmployeeId) {
+      setTransferLoading(true);
+      try {
+        const token = localStorage.getItem('token');
+        const apiUrl = getApiUrl();
+        const response = await fetch(`${apiUrl}/clients/${clientToTransfer.id}/transfer`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': token ? `Bearer ${token}` : ''
+          },
+          body: JSON.stringify({ toEmployeeId: selectedEmployeeId })
+        });
+
+        const result = await response.json();
+
+        if (response.ok && result.success) {
+          alert(`Client "${clientToTransfer.clientName}" transferred successfully!`);
+          setTransferDialogOpen(false);
+          setClientToTransfer(null);
+          setSelectedEmployeeId('');
+          
+          // Refetch clients
+          setTimeout(() => {
+            const fetchClients = async () => {
+              try {
+                const result = await clientApi.getAll();
+                if (result.success && result.data) {
+                  const mappedClients = result.data.map(client => ({
+                    ...client,
+                    id: client._id || client.id || ''
+                  }));
+                  setClients(mappedClients);
+                }
+              } catch (err) {
+                console.error('Error refetching clients:', err);
+              }
+            };
+            fetchClients();
+          }, 500);
+        } else {
+          throw new Error(result.message || 'Failed to transfer client');
+        }
+      } catch (error) {
+        console.error('Error transferring client:', error);
+        alert(`Error transferring client: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      }
+      setTransferLoading(false);
+    }
   };
 
   const confirmDeleteClient = async () => {
@@ -430,6 +527,14 @@ const Clients: React.FC = () => {
             </ListItemIcon>
             <ListItemText>Edit</ListItemText>
           </MenuItem>
+          {userRole === 'admin' && (
+            <MenuItem onClick={handleTransferClient}>
+              <ListItemIcon>
+                <Edit fontSize="small" />
+              </ListItemIcon>
+              <ListItemText>Transfer Client</ListItemText>
+            </MenuItem>
+          )}
           <MenuItem onClick={handleDeleteClient}>
             <ListItemIcon>
               <Delete fontSize="small" />
@@ -535,6 +640,94 @@ const Clients: React.FC = () => {
         transferHistory={selectedClient?.transferHistory as any}
         onClose={() => setHistoryDialogOpen(false)}
       />
+
+      {/* Transfer Client Dialog (Admin only) */}
+      <Dialog
+        open={transferDialogOpen}
+        onClose={() => {
+          setTransferDialogOpen(false);
+          setClientToTransfer(null);
+          setSelectedEmployeeId('');
+        }}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle sx={{ pb: 1 }}>
+          Transfer Client
+        </DialogTitle>
+        <DialogContent sx={{ pb: 2 }}>
+          {transferLoading ? (
+            <Typography>Processing transfer...</Typography>
+          ) : (
+            <>
+              <Typography variant="body2" sx={{ mb: 2 }}>
+                Transfer client <strong>"{clientToTransfer?.clientName}"</strong> to another employee.
+              </Typography>
+              <Box component="div" sx={{ mt: 2 }}>
+                <Typography variant="body2" sx={{ mb: 1, fontWeight: 500 }}>
+                  Select Employee
+                </Typography>
+                <select
+                  value={selectedEmployeeId}
+                  onChange={(e) => setSelectedEmployeeId(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '8px 12px',
+                    borderRadius: '4px',
+                    border: '1px solid #e2e8f0',
+                    fontSize: '14px',
+                    fontFamily: 'inherit'
+                  }}
+                >
+                  <option value="">-- Select Employee --</option>
+                  {employees.map((emp: any) => (
+                    <option key={emp._id} value={emp._id}>
+                      {emp.name || `${emp.firstName || ''} ${emp.lastName || ''}`.trim()}
+                    </option>
+                  ))}
+                </select>
+              </Box>
+            </>
+          )}
+        </DialogContent>
+        <DialogActions sx={{ p: 3, pt: 0 }}>
+          <Button 
+            onClick={() => {
+              setTransferDialogOpen(false);
+              setClientToTransfer(null);
+              setSelectedEmployeeId('');
+            }}
+            variant="outlined"
+            sx={{ 
+              borderColor: '#e2e8f0',
+              color: '#475569',
+              '&:hover': {
+                borderColor: '#cbd5e1',
+                backgroundColor: '#f8fafc',
+              }
+            }}
+          >
+            Cancel
+          </Button>
+          <Button 
+            onClick={confirmTransferClient}
+            variant="contained"
+            disabled={!selectedEmployeeId || transferLoading}
+            sx={{ 
+              backgroundColor: '#3b82f6',
+              color: 'white',
+              '&:hover': {
+                backgroundColor: '#2563eb',
+              },
+              '&:disabled': {
+                backgroundColor: '#cbd5e1',
+              }
+            }}
+          >
+            Transfer
+          </Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 };

@@ -32,6 +32,7 @@ const Employees: React.FC = () => {
   const [clientsToTransfer, setClientsToTransfer] = useState<any[]>([]);
   const [selectedNewEmployeeId, setSelectedNewEmployeeId] = useState<string>('');
   const [transferLoading, setTransferLoading] = useState(false);
+  const [transferAction, setTransferAction] = useState<'delete' | 'suspend'>('delete');
 
   // Helper: fetch clients for an employee
   const fetchClientsForEmployee = async (employeeId: string) => {
@@ -260,6 +261,7 @@ const Employees: React.FC = () => {
           const emp = employees.find(e => e.id === id) || null;
           setEmployeeToTransfer(emp);
           setClientsToTransfer(clients);
+          setTransferAction('delete');
           setShowTransferDialog(true);
           return; // Don't proceed with delete
         }
@@ -314,6 +316,7 @@ const Employees: React.FC = () => {
           const emp = employees.find(e => e.id === id) || null;
           setEmployeeToTransfer(emp);
           setClientsToTransfer(clients);
+          setTransferAction('suspend');
           setShowTransferDialog(true);
           return; // Don't proceed with suspend
         }
@@ -600,7 +603,10 @@ const Employees: React.FC = () => {
       </Modal>
 
       {/* Transfer Clients Modal */}
-      <Modal show={showTransferDialog} onHide={() => setShowTransferDialog(false)}>
+      <Modal show={showTransferDialog} onHide={() => {
+        setShowTransferDialog(false);
+        setTransferAction('delete');
+      }}>
         <Modal.Header closeButton>
           <Modal.Title>Transfer Clients Before Action</Modal.Title>
         </Modal.Header>
@@ -638,8 +644,8 @@ const Employees: React.FC = () => {
                         body: JSON.stringify({ toEmployeeId: selectedNewEmployeeId })
                       });
                     }
-                    // After transfer, suspend or delete
-                    if (employeeToTransfer.status === 'Suspended by Admin') {
+                    // After transfer, suspend or delete based on action
+                    if (transferAction === 'delete') {
                       await deleteEmployeeApi(employeeToTransfer.id);
                     } else {
                       await suspendEmployeeApi(employeeToTransfer.id);
@@ -657,7 +663,10 @@ const Employees: React.FC = () => {
                 }}>
                   Transfer & Continue
                 </Button>
-                <Button variant="secondary" className="ms-2" onClick={() => setShowTransferDialog(false)}>
+                <Button variant="secondary" className="ms-2" onClick={() => {
+                  setShowTransferDialog(false);
+                  setTransferAction('delete');
+                }}>
                   Cancel
                 </Button>
               </div>
