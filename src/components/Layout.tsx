@@ -4,7 +4,6 @@ import {
   AppBar,
   Box,
   Typography,
-  useTheme,
   alpha,
   List,
   ListItem,
@@ -45,7 +44,7 @@ import {
   Logout,
 } from '@mui/icons-material';
 import { fetchUserPermissions, generateMenuItems } from '../services/permissionService';
-import type { UserPermissions, MenuItemConfig } from '../services/permissionService';
+import type { MenuItemConfig } from '../services/permissionService';
 
 const drawerWidth = 280;
 
@@ -95,11 +94,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const navigate = useNavigate();
   const location = useLocation();
-  const theme = useTheme();
   
   // State for user data and permissions
   const [currentUser, setCurrentUser] = useState<any>(null);
-  const [userPermissions, setUserPermissions] = useState<UserPermissions | null>(null);
   const [menuItems, setMenuItems] = useState<{
     mainMenu: any[];
     expensesMenu: any[];
@@ -134,7 +131,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           // Fetch permissions from backend
           fetchUserPermissions().then((permissions) => {
             if (permissions) {
-              setUserPermissions(permissions);
               const generatedMenus = generateMenuItems(permissions.permissions, user.role);
               setMenuItems({
                 mainMenu: generatedMenus.mainMenu.map(formatMenuItem),
@@ -154,16 +150,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
     initializeUser();
   }, []);
-
-  // Get user initials for avatar
-  const getUserInitials = (name: string) => {
-    return name
-      .split(' ')
-      .map(word => word.charAt(0))
-      .join('')
-      .toUpperCase()
-      .slice(0, 2);
-  };
 
   // Format role display (role-department or just role)
   const getRoleDisplay = (role: string, department: string) => {
