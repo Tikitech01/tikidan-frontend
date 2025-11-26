@@ -28,9 +28,11 @@ import {
   Delete,
   Visibility,
   MoreVert,
+  History as HistoryIcon,
 } from '@mui/icons-material';
 import AddClientForm from '../components/AddClientForm';
 import ClientDetailsDialog from '../components/ClientDetailsDialog';
+import ClientHistoryDialog from '../components/ClientHistoryDialog';
 import { clientApi } from '../services/api';
 import type { Client } from '../services/api';
 
@@ -39,6 +41,7 @@ const Clients: React.FC = () => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
+  const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [clientToDelete, setClientToDelete] = useState<Client | null>(null);
   
@@ -96,6 +99,11 @@ const Clients: React.FC = () => {
 
   const handleViewClient = () => {
     setDetailsDialogOpen(true);
+    handleMenuClose();
+  };
+
+  const handleViewHistory = () => {
+    setHistoryDialogOpen(true);
     handleMenuClose();
   };
 
@@ -186,18 +194,24 @@ const Clients: React.FC = () => {
       const result = await clientApi.create(clientData);
       
       if (result.success && result.data) {
-        // Map _id to id for frontend compatibility
-        const newClient = {
-          ...result.data,
-          id: result.data._id || result.data.id || Date.now().toString()
-        };
-        
-        // Add client to the list
-        setClients(prevClients => {
-          const updatedClients = [...prevClients, newClient];
-          console.log('Updated clients array:', updatedClients);
-          return updatedClients;
-        });
+        // After creating client, refetch the list to get the populated salesPerson
+        setTimeout(() => {
+          const fetchClients = async () => {
+            try {
+              const result = await clientApi.getAll();
+              if (result.success && result.data) {
+                const mappedClients = result.data.map(client => ({
+                  ...client,
+                  id: client._id || client.id || ''
+                }));
+                setClients(mappedClients);
+              }
+            } catch (err) {
+              console.error('Error refetching clients:', err);
+            }
+          };
+          fetchClients();
+        }, 500);
         
         console.log('Client saved successfully');
       } else {
@@ -404,6 +418,12 @@ const Clients: React.FC = () => {
             </ListItemIcon>
             <ListItemText>View Details</ListItemText>
           </MenuItem>
+          <MenuItem onClick={handleViewHistory}>
+            <ListItemIcon>
+              <HistoryIcon fontSize="small" />
+            </ListItemIcon>
+            <ListItemText>View History</ListItemText>
+          </MenuItem>
           <MenuItem onClick={handleEditClient}>
             <ListItemIcon>
               <Edit fontSize="small" />
@@ -505,8 +525,19 @@ const Clients: React.FC = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Client History Dialog */}
+      <ClientHistoryDialog
+        open={historyDialogOpen}
+        clientName={selectedClient?.clientName}
+        createdBy={selectedClient?.createdBy as any}
+        createdAt={selectedClient?.createdAt}
+        transferHistory={selectedClient?.transferHistory as any}
+        onClose={() => setHistoryDialogOpen(false)}
+      />
     </>
   );
 };
 
 export default Clients;
+

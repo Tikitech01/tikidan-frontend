@@ -44,9 +44,14 @@ export interface Client {
   totalMeetings?: number;
   totalProjects?: number;
   locations?: BranchLocation[];
-  createdBy?: string;
+  createdBy?: string | { name?: string; email?: string };
   createdAt?: string;
   updatedAt?: string;
+  transferHistory?: Array<{
+    from?: { name?: string; email?: string };
+    to?: { name?: string; email?: string };
+    transferredAt?: string;
+  }>;
 }
 
 export interface Meeting {

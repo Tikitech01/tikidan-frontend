@@ -252,6 +252,19 @@ const Employees: React.FC = () => {
           return;
         }
 
+        // CHECK FOR CLIENTS FIRST before deleting
+        const clients = await fetchClientsForEmployee(id);
+        
+        if (clients.length > 0) {
+          // Show transfer dialog instead of deleting
+          const emp = employees.find(e => e.id === id) || null;
+          setEmployeeToTransfer(emp);
+          setClientsToTransfer(clients);
+          setShowTransferDialog(true);
+          return; // Don't proceed with delete
+        }
+
+        // No clients, proceed to delete
         const response = await fetch(`${getApiUrl()}/auth/employees/${id}`, {
           method: 'DELETE',
           headers: {
@@ -262,24 +275,10 @@ const Employees: React.FC = () => {
 
         const data = await response.json();
 
-        console.log('DEBUG: handleDeleteEmployee called for', id);
-        const clients = await fetchClientsForEmployee(id);
-        alert(`DEBUG: Found ${clients.length} clients for employee ${id}`);
-        setTransferLoading(false);
-        if (clients.length > 0) {
-          // Show transfer dialog
-          const emp = employees.find(e => e.id === id) || null;
-          setEmployeeToTransfer(emp);
-          setClientsToTransfer(clients);
-          setShowTransferDialog(true);
-        } else {
-          // No clients, proceed to delete
-          await deleteEmployeeApi(id);
-        }
-
         if (response.ok && data.success) {
           // Remove employee from local state after successful deletion
           setEmployees(employees.filter(emp => emp.id !== id));
+          alert('Employee deleted successfully!');
         } else {
           console.error('Failed to delete employee:', data.message);
           alert('Failed to delete employee: ' + data.message);
@@ -307,6 +306,19 @@ const Employees: React.FC = () => {
           return;
         }
 
+        // CHECK FOR CLIENTS FIRST before suspending
+        const clients = await fetchClientsForEmployee(id);
+        
+        if (clients.length > 0) {
+          // Show transfer dialog instead of suspending
+          const emp = employees.find(e => e.id === id) || null;
+          setEmployeeToTransfer(emp);
+          setClientsToTransfer(clients);
+          setShowTransferDialog(true);
+          return; // Don't proceed with suspend
+        }
+
+        // No clients, proceed to suspend
         const response = await fetch(`${getApiUrl()}/auth/employees/${id}/suspend`, {
           method: 'PATCH',
           headers: {
@@ -317,26 +329,12 @@ const Employees: React.FC = () => {
 
         const data = await response.json();
 
-        console.log('DEBUG: handleSuspendEmployee called for', id);
-        const clients = await fetchClientsForEmployee(id);
-        alert(`DEBUG: Found ${clients.length} clients for employee ${id}`);
-        setTransferLoading(false);
-        if (clients.length > 0) {
-          // Show transfer dialog
-          const emp = employees.find(e => e.id === id) || null;
-          setEmployeeToTransfer(emp);
-          setClientsToTransfer(clients);
-          setShowTransferDialog(true);
-        } else {
-          // No clients, proceed to suspend
-          await suspendEmployeeApi(id);
-        }
-
         if (response.ok && data.success) {
           // Update employee status in local state
           setEmployees(employees.map(emp => 
             emp.id === id ? { ...emp, status: 'Suspended by Admin' } : emp
           ));
+          alert('Employee suspended successfully!');
         } else {
           console.error('Failed to suspend employee:', data.message);
           alert('Failed to suspend employee: ' + data.message);
