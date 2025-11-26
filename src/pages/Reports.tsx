@@ -3,38 +3,6 @@ import { Card, Row, Col, Form, Button } from 'react-bootstrap';
 import { Icon } from '@iconify/react';
 import PageTitle from '../components/PageTitle';
 
-interface StatCardProps {
-  title: string;
-  value: number;
-  icon: string;
-  color: string;
-}
-
-const StatCard: React.FC<StatCardProps> = ({ title, value, icon, color }) => {
-  return (
-    <Card className="h-100 border-0 shadow-sm">
-      <Card.Body className="d-flex align-items-center p-3">
-        <div 
-          className="me-3 d-flex align-items-center justify-content-center rounded"
-          style={{
-            width: '48px',
-            height: '48px',
-            background: `linear-gradient(135deg, ${color} 0%, ${color}dd 100%)`,
-            color: 'white'
-          }}
-        >
-          <Icon icon={icon} width="24" height="24" />
-        </div>
-        <div className="flex-grow-1">
-          <h3 className="mb-0 fw-bold" style={{ color: '#313a46', fontSize: '1.75rem' }}>
-            {value}
-          </h3>
-          <p className="mb-0 text-muted small fw-medium">{title}</p>
-        </div>
-      </Card.Body>
-    </Card>
-  );
-};
 
 const Reports: React.FC = () => {
   const stats = [
@@ -90,7 +58,6 @@ const Reports: React.FC = () => {
       <Row className="g-3 mb-4">
         {stats.map((stat, index) => (
           <Col key={index} lg={2} md={4} sm={6}>
-            <StatCard {...stat} />
           </Col>
         ))}
       </Row>

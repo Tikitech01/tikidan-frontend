@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
   Box,
-  Paper,
   Typography,
   Avatar,
   Card,
@@ -16,11 +15,8 @@ import {
   Email,
   Security,
   Notifications,
-  Badge,
-  Work,
-  BusinessCenter,
 } from '@mui/icons-material';
-import { useTheme, alpha } from '@mui/material/styles';
+import { useTheme } from '@mui/material/styles';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -43,7 +39,7 @@ const TabPanel: React.FC<TabPanelProps> = ({ children, value, index, ...other })
 };
 
 const Profile: React.FC = () => {
-  const theme = useTheme();
+  // const theme = useTheme(); // Removed unused variable
   const [tabValue, setTabValue] = useState(0);
 
   // User state
