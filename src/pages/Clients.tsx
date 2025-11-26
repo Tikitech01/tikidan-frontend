@@ -21,8 +21,6 @@ import {
   ListItemIcon,
   ListItemText,
   Button,
-  CircularProgress,
-  Alert,
 } from '@mui/material';
 import {
   Add,
@@ -30,12 +28,11 @@ import {
   Delete,
   Visibility,
   MoreVert,
-  Refresh,
 } from '@mui/icons-material';
 import AddClientForm from '../components/AddClientForm';
 import ClientDetailsDialog from '../components/ClientDetailsDialog';
 import { clientApi } from '../services/api';
-import type { Client, ContactPerson, BranchLocation } from '../services/api';
+import type { Client } from '../services/api';
 
 const Clients: React.FC = () => {
   const [openDialog, setOpenDialog] = useState(false);
@@ -47,14 +44,11 @@ const Clients: React.FC = () => {
   
   // Clients state
   const [clients, setClients] = useState<Client[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   // Load clients from API
   useEffect(() => {
     const fetchClients = async () => {
       try {
-        setLoading(true);
         const result = await clientApi.getAll();
 
         if (result.success && result.data) {
@@ -64,16 +58,12 @@ const Clients: React.FC = () => {
             id: client._id || client.id || ''
           }));
           setClients(mappedClients);
-          setError(null);
         } else {
           throw new Error(result.message || 'Failed to fetch clients');
         }
       } catch (err) {
         console.error('Error fetching clients:', err);
-        setError(err instanceof Error ? err.message : 'An error occurred');
         setClients([]);
-      } finally {
-        setLoading(false);
       }
     };
 
@@ -430,7 +420,7 @@ const Clients: React.FC = () => {
         {/* Client Details Dialog */}
         <ClientDetailsDialog
           open={detailsDialogOpen}
-          client={selectedClient}
+          client={selectedClient as any}
           onClose={handleCloseDetailsDialog}
           onUpdateClient={handleUpdateClient}
         />
