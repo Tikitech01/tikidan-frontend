@@ -3,35 +3,12 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import {
   AppBar,
   Box,
-  Drawer,
-  IconButton,
-  List,
-  ListItem,
-  ListItemButton,
-  ListItemIcon,
-  ListItemText,
-  Toolbar,
   Typography,
-  Avatar,
-  Divider,
-  useTheme,
-  alpha,
-  Menu,
-  MenuItem,
-  TextField,
   InputAdornment,
 } from '@mui/material';
 import {
-  Menu as MenuIcon,
+  
   Dashboard as DashboardIcon,
-  Group as GroupIcon,
-  Work as WorkIcon,
-  People as PeopleIcon,
-  Person,
-  CalendarMonth,
-  GroupWork,
-  Settings,
-  Logout,
   Search,
   Business,
   Schedule,
@@ -142,10 +119,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           fetchUserPermissions().then((permissions) => {
             if (permissions) {
               setUserPermissions(permissions);
-              const generatedMenus = generateMenuItems(permissions.permissions, user.role);
-              setMenuItems({
-                mainMenu: generatedMenus.mainMenu.map(formatMenuItem),
-                expensesMenu: generatedMenus.expensesMenu.map(formatMenuItem),
                 accountMenu: generatedMenus.accountMenu.map(formatMenuItem),
                 companyMenu: generatedMenus.companyMenu.map(formatMenuItem)
               });
