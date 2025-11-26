@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Card, Row, Col, Form, Button } from 'react-bootstrap';
 import { Icon } from '@iconify/react';
-import PageTitle from '../components/PageTitle';
 
 
 const Reports: React.FC = () => {
@@ -56,7 +55,7 @@ const Reports: React.FC = () => {
       </div>
 
       <Row className="g-3 mb-4">
-        {stats.map((stat, index) => (
+        {stats.map((_stat, index) => (
           <Col key={index} lg={2} md={4} sm={6}>
           </Col>
         ))}

@@ -16,7 +16,6 @@ import {
   Security,
   Notifications,
 } from '@mui/icons-material';
-import { useTheme } from '@mui/material/styles';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -83,7 +82,7 @@ const Profile: React.FC = () => {
     return `${formattedRole} - ${department}`;
   };
 
-  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+  const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
   };
 

@@ -19,7 +19,6 @@ interface Employee {
 const Employees: React.FC = () => {
   // State
   const [employees, setEmployees] = useState<Employee[]>([]);
-  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortField, setSortField] = useState<keyof Employee>('name');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
@@ -124,7 +123,6 @@ const Employees: React.FC = () => {
 
   const fetchEmployees = async () => {
     try {
-      setLoading(true);
       const token = localStorage.getItem('token');
       
       if (!token) {
@@ -195,8 +193,6 @@ const Employees: React.FC = () => {
       }
     } catch (error) {
       console.error('Error fetching employees:', error);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -385,15 +381,7 @@ const Employees: React.FC = () => {
     }
   };
 
-  // Get employee initials for avatar
-  const getEmployeeInitials = (name: string) => {
-    return name
-      .split(' ')
-      .map(word => word.charAt(0))
-      .join('')
-      .toUpperCase()
-      .slice(0, 2);
-  };
+
 
   return (
     <>
@@ -473,7 +461,12 @@ const Employees: React.FC = () => {
                           className="bg-primary text-white d-flex align-items-center justify-content-center rounded-circle me-3"
                           style={{ width: '40px', height: '40px', fontSize: '0.875rem' }}
                         >
-                          {getEmployeeInitials(employee.name)}
+                          {employee.name
+                            .split(' ')
+                            .map(word => word.charAt(0))
+                            .join('')
+                            .toUpperCase()
+                            .slice(0, 2)}
                         </div>
                         <div>
                           <h6 className="mb-0 fw-semibold">{employee.name}</h6>
