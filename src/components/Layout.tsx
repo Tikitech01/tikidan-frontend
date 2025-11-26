@@ -4,41 +4,58 @@ import {
   AppBar,
   Box,
   Typography,
+  useTheme,
+  alpha,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+  Menu,
+  MenuItem,
+  Divider,
+  Toolbar,
+  IconButton,
+  TextField,
   InputAdornment,
+  Avatar,
+  Drawer,
 } from '@mui/material';
 import {
-  
   Dashboard as DashboardIcon,
-  Search,
+  Work as WorkIcon,
+  People as PeopleIcon,
+  CalendarMonth,
+  AttachMoney,
+  RateReview,
+  Category,
+  Settings,
+  Assessment,
+  Person,
+  Group as GroupIcon,
   Business,
   Schedule,
   Badge,
-  Category,
-  BusinessCenter,
+  GroupWork,
   LocationOn,
   Event,
   Receipt,
-  AccountBalance,
-  AttachMoney,
-  RateReview,
-  CheckCircle,
-  Cancel,
-  Assessment,
-  HourglassEmpty,
-  Payment,
-  ManageAccounts,
+  Search,
+  Menu as MenuIcon,
+  Logout,
 } from '@mui/icons-material';
 import { fetchUserPermissions, generateMenuItems } from '../services/permissionService';
 import type { UserPermissions, MenuItemConfig } from '../services/permissionService';
 
-const drawerWidth = 240;
+const drawerWidth = 280;
+
 
 interface LayoutProps {
   children: React.ReactNode;
 }
 
 // Icon mapping function
-const getIconForMenuItem = (menuItem: string, color: string = '#2196f3') => {
+const getIconForMenuItem = (menuItem: string) => {
   const iconMap: Record<string, React.ReactNode> = {
     'dashboard': <DashboardIcon fontSize="small" />,
     'projects': <WorkIcon fontSize="small" />,
@@ -60,16 +77,15 @@ const getIconForMenuItem = (menuItem: string, color: string = '#2196f3') => {
     'department': <GroupWork fontSize="small" />,
     'branches': <LocationOn fontSize="small" />,
     'holiday': <Event fontSize="small" />,
-    'billing': <Receipt fontSize="small" />
+    'billing': <Receipt fontSize="small" />,
   };
-  
   return iconMap[menuItem] || <DashboardIcon fontSize="small" />;
 };
 
 // Convert MenuItemConfig to display format
 const formatMenuItem = (config: MenuItemConfig) => ({
   text: config.text,
-  icon: getIconForMenuItem(config.permission, config.color),
+  icon: getIconForMenuItem(config.permission),
   path: config.path,
   color: config.color
 });
@@ -119,6 +135,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           fetchUserPermissions().then((permissions) => {
             if (permissions) {
               setUserPermissions(permissions);
+              const generatedMenus = generateMenuItems(permissions.permissions, user.role);
+              setMenuItems({
+                mainMenu: generatedMenus.mainMenu.map(formatMenuItem),
+                expensesMenu: generatedMenus.expensesMenu.map(formatMenuItem),
                 accountMenu: generatedMenus.accountMenu.map(formatMenuItem),
                 companyMenu: generatedMenus.companyMenu.map(formatMenuItem)
               });
