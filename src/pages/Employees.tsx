@@ -592,8 +592,10 @@ const Employees: React.FC = () => {
             onClose={handleCloseAddDialog}
             employeeId={editingEmployeeId}
             onSave={() => {
-              // Refresh the employee list after adding/editing
-              fetchEmployees();
+              // Refresh the employee list after adding/editing with a small delay
+              setTimeout(() => {
+                fetchEmployees();
+              }, 500);
             }}
           />
         </Modal.Body>
