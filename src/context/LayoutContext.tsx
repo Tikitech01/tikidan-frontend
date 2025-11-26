@@ -43,11 +43,6 @@ export const LayoutProvider: React.FC<LayoutProviderProps> = ({ children }) => {
     }
   };
 
-  const toggleMobileSidebar = () => {
-    setMobileSidebarOpen(!isMobileSidebarOpen);
-    setShowBackdrop(!isMobileSidebarOpen);
-  };
-
   const value: LayoutContextType = {
     isSidebarCollapsed,
     setSidebarCollapsed,
