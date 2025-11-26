@@ -252,7 +252,7 @@ const Employees: React.FC = () => {
           return;
         }
 
-        const response = await fetch(`http://localhost:5000/api/auth/employees/${id}`, {
+        const response = await fetch(`${getApiUrl()}/auth/employees/${id}`, {
           method: 'DELETE',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -307,7 +307,7 @@ const Employees: React.FC = () => {
           return;
         }
 
-        const response = await fetch(`http://localhost:5000/api/auth/employees/${id}/suspend`, {
+        const response = await fetch(`${getApiUrl()}/auth/employees/${id}/suspend`, {
           method: 'PATCH',
           headers: {
             'Authorization': `Bearer ${token}`,
