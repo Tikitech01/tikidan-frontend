@@ -65,8 +65,8 @@ const Employees: React.FC = () => {
   const suspendEmployeeApi = async (id: string) => {
     try {
       const token = localStorage.getItem('token');
-      if (!token) return;
-      const response = await fetch(`${getApiUrl()}/auth/employees/${id}/unsuspend`, {
+      if (!token) return false;
+      const response = await fetch(`${getApiUrl()}/auth/employees/${id}/suspend`, {
         method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -76,11 +76,14 @@ const Employees: React.FC = () => {
       const data = await response.json();
       if (response.ok && data.success) {
         setEmployees(employees.map(emp => emp.id === id ? { ...emp, status: 'Suspended by Admin' } : emp));
+        return true;
       } else {
         alert('Failed to suspend employee: ' + data.message);
+        return false;
       }
     } catch (error) {
       alert('Error suspending employee. Please try again.');
+      return false;
     }
   };
 
@@ -88,7 +91,7 @@ const Employees: React.FC = () => {
   const deleteEmployeeApi = async (id: string) => {
     try {
       const token = localStorage.getItem('token');
-      if (!token) return;
+      if (!token) return false;
       const response = await fetch(`${getApiUrl()}/auth/employees/${id}`, {
         method: 'DELETE',
         headers: {
@@ -99,11 +102,14 @@ const Employees: React.FC = () => {
       const data = await response.json();
       if (response.ok && data.success) {
         setEmployees(employees.filter(emp => emp.id !== id));
+        return true;
       } else {
         alert('Failed to delete employee: ' + data.message);
+        return false;
       }
     } catch (error) {
       alert('Error deleting employee. Please try again.');
+      return false;
     }
   };
 
@@ -644,8 +650,9 @@ const Employees: React.FC = () => {
                   setTransferLoading(true);
                   try {
                     const token = localStorage.getItem('token');
+                    // Transfer all clients first
                     for (const client of clientsToTransfer) {
-                      await fetch(`${getApiUrl()}/clients/${client.id}/transfer`, {
+                      const transferResponse = await fetch(`${getApiUrl()}/clients/${client.id}/transfer`, {
                         method: 'POST',
                         headers: {
                           'Authorization': `Bearer ${token}`,
@@ -653,21 +660,38 @@ const Employees: React.FC = () => {
                         },
                         body: JSON.stringify({ toEmployeeId: selectedNewEmployeeId })
                       });
+                      const transferData = await transferResponse.json();
+                      if (!transferResponse.ok) {
+                        console.error('Transfer error:', transferData);
+                      }
                     }
+                    
+                    // Wait a moment for transfers to complete
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    
                     // After transfer, suspend or delete based on action
                     if (transferAction === 'delete') {
-                      await deleteEmployeeApi(employeeToTransfer.id);
+                      const deleteSuccess = await deleteEmployeeApi(employeeToTransfer.id);
+                      if (deleteSuccess) {
+                        alert('Clients transferred and employee deleted successfully!');
+                      }
                     } else {
-                      await suspendEmployeeApi(employeeToTransfer.id);
+                      const suspendSuccess = await suspendEmployeeApi(employeeToTransfer.id);
+                      if (suspendSuccess) {
+                        alert('Clients transferred and employee suspended successfully!');
+                      }
                     }
+                    
+                    // Close dialog and reset state
                     setShowTransferDialog(false);
                     setEmployeeToTransfer(null);
                     setClientsToTransfer([]);
                     setSelectedNewEmployeeId('');
+                    setTransferAction('delete');
                     fetchEmployees();
-                    alert('Clients transferred and action completed.');
                   } catch (error) {
-                    alert('Error transferring clients. Please try again.');
+                    console.error('Transfer process error:', error);
+                    alert('Error during transfer process. Please try again.');
                   }
                   setTransferLoading(false);
                 }}>
