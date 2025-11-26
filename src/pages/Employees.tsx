@@ -299,53 +299,56 @@ const Employees: React.FC = () => {
   };
 
   const handleSuspendEmployee = async (id: string) => {
-    if (window.confirm('Are you sure you want to suspend this employee?')) {
-      try {
-        const token = localStorage.getItem('token');
-        
-        if (!token) {
-          console.error('No token found');
-          return;
-        }
-
-        // CHECK FOR CLIENTS FIRST before suspending
-        const clients = await fetchClientsForEmployee(id);
-        
-        if (clients.length > 0) {
-          // Show transfer dialog instead of suspending
-          const emp = employees.find(e => e.id === id) || null;
-          setEmployeeToTransfer(emp);
-          setClientsToTransfer(clients);
-          setTransferAction('suspend');
-          setShowTransferDialog(true);
-          return; // Don't proceed with suspend
-        }
-
-        // No clients, proceed to suspend
-        const response = await fetch(`${getApiUrl()}/auth/employees/${id}/suspend`, {
-          method: 'PATCH',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-        });
-
-        const data = await response.json();
-
-        if (response.ok && data.success) {
-          // Update employee status in local state
-          setEmployees(employees.map(emp => 
-            emp.id === id ? { ...emp, status: 'Suspended by Admin' } : emp
-          ));
-          alert('Employee suspended successfully!');
-        } else {
-          console.error('Failed to suspend employee:', data.message);
-          alert('Failed to suspend employee: ' + data.message);
-        }
-      } catch (error) {
-        console.error('Error suspending employee:', error);
-        alert('Error suspending employee. Please try again.');
+    try {
+      const token = localStorage.getItem('token');
+      
+      if (!token) {
+        console.error('No token found');
+        return;
       }
+
+      // CHECK FOR CLIENTS FIRST before suspending
+      const clients = await fetchClientsForEmployee(id);
+      
+      if (clients.length > 0) {
+        // Show transfer dialog instead of suspending
+        const emp = employees.find(e => e.id === id) || null;
+        setEmployeeToTransfer(emp);
+        setClientsToTransfer(clients);
+        setTransferAction('suspend');
+        setShowTransferDialog(true);
+        return; // Don't proceed with suspend
+      }
+
+      // No clients, ask for confirmation and then suspend
+      if (!window.confirm('Are you sure you want to suspend this employee?')) {
+        return;
+      }
+
+      // Proceed to suspend
+      const response = await fetch(`${getApiUrl()}/auth/employees/${id}/suspend`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        // Update employee status in local state
+        setEmployees(employees.map(emp => 
+          emp.id === id ? { ...emp, status: 'Suspended by Admin' } : emp
+        ));
+        alert('Employee suspended successfully!');
+      } else {
+        console.error('Failed to suspend employee:', data.message);
+        alert('Failed to suspend employee: ' + data.message);
+      }
+    } catch (error) {
+      console.error('Error suspending employee:', error);
+      alert('Error suspending employee. Please try again.');
     }
   };
 
@@ -358,7 +361,7 @@ const Employees: React.FC = () => {
         return;
       }
 
-      const response = await fetch(`${getApiUrl()}/auth/employees/${id}`, {
+      const response = await fetch(`${getApiUrl()}/auth/employees/${id}/unsuspend`, {
         method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -373,6 +376,7 @@ const Employees: React.FC = () => {
         setEmployees(employees.map(emp => 
           emp.id === id ? { ...emp, status: 'Active' } : emp
         ));
+        alert('Employee activated successfully!');
       } else {
         console.error('Failed to unsuspend employee:', data.message);
         alert('Failed to unsuspend employee: ' + data.message);
