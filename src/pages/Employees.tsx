@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Card, Table, Button, Form, InputGroup, Badge, Dropdown, Modal, Row, Col } from 'react-bootstrap';
 import { Icon } from '@iconify/react';
 import AddEmployeeForm from '../components/AddEmployeeForm';
+import { getApiUrl } from '../services/api';
 
 // Types
 interface Employee {
@@ -38,7 +39,7 @@ const Employees: React.FC = () => {
       const token = localStorage.getItem('token');
       if (!token) return [];
       // Use a dedicated endpoint to get clients by employee
-      const clientsResponse = await fetch(`http://localhost:5000/api/clients`, {
+      const clientsResponse = await fetch(`${getApiUrl()}/clients`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await clientsResponse.json();
@@ -58,7 +59,7 @@ const Employees: React.FC = () => {
     try {
       const token = localStorage.getItem('token');
       if (!token) return;
-      const response = await fetch(`http://localhost:5000/api/auth/employees/${id}/suspend`, {
+      const response = await fetch(`${getApiUrl()}/auth/employees/${id}/unsuspend`, {
         method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -81,7 +82,7 @@ const Employees: React.FC = () => {
     try {
       const token = localStorage.getItem('token');
       if (!token) return;
-      const response = await fetch(`http://localhost:5000/api/auth/employees/${id}`, {
+      const response = await fetch(`${getApiUrl()}/auth/employees/${id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -130,7 +131,7 @@ const Employees: React.FC = () => {
         return;
       }
 
-      const response = await fetch('http://localhost:5000/api/auth/employees', {
+      const response = await fetch(`${getApiUrl()}/auth/employees`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -356,7 +357,7 @@ const Employees: React.FC = () => {
         return;
       }
 
-      const response = await fetch(`http://localhost:5000/api/auth/employees/${id}/unsuspend`, {
+      const response = await fetch(`${getApiUrl()}/auth/employees/${id}`, {
         method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -628,7 +629,7 @@ const Employees: React.FC = () => {
                   try {
                     const token = localStorage.getItem('token');
                     for (const client of clientsToTransfer) {
-                      await fetch(`http://localhost:5000/api/clients/${client.id}/transfer`, {
+                      await fetch(`${getApiUrl()}/clients/${client.id}/transfer`, {
                         method: 'POST',
                         headers: {
                           'Authorization': `Bearer ${token}`,

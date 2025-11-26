@@ -18,6 +18,7 @@ import {
   Save as SaveIcon,
   Cancel as CancelIcon,
 } from '@mui/icons-material';
+import { getApiUrl } from '../services/api';
 
 const DEPARTMENT_OPTIONS = [
   { value: 'sales', label: 'Sales' },
@@ -136,7 +137,7 @@ const AddEmployeeForm: React.FC<AddEmployeeFormProps> = ({
         console.log('Fetching employee data...');
         
         // Fetch employees for reporting dropdown
-        const employeesResponse = await fetch('http://localhost:5000/api/auth/employees-list', {
+        const employeesResponse = await fetch(`${getApiUrl()}/auth/employees-list`, {
           headers: {
             'Authorization': `Bearer ${token}`,
           },
@@ -153,7 +154,7 @@ const AddEmployeeForm: React.FC<AddEmployeeFormProps> = ({
         }
         
         // Fetch permissions
-        const permissionsResponse = await fetch('http://localhost:5000/api/auth/available-permissions', {
+        const permissionsResponse = await fetch(`${getApiUrl()}/auth/available-permissions`, {
           headers: {
             'Authorization': `Bearer ${token}`,
           },
@@ -177,7 +178,7 @@ const AddEmployeeForm: React.FC<AddEmployeeFormProps> = ({
       const fetchEmployeeData = async () => {
         try {
           const token = localStorage.getItem('token');
-          const response = await fetch(`http://localhost:5000/api/auth/employees/${employeeId}`, {
+          const response = await fetch(`${getApiUrl()}/auth/employees/${employeeId}`, {
             headers: {
               'Authorization': `Bearer ${token}`,
             },
@@ -243,7 +244,7 @@ const AddEmployeeForm: React.FC<AddEmployeeFormProps> = ({
   const fetchRolePermissions = async (role: string) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/roles/role-permissions/${role}`, {
+      const response = await fetch(`${getApiUrl()}/roles/role-permissions/${role}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -310,8 +311,8 @@ const AddEmployeeForm: React.FC<AddEmployeeFormProps> = ({
       
       // Determine if we're creating or updating
       const url = employeeId 
-        ? `http://localhost:5000/api/auth/employees/${employeeId}`
-        : 'http://localhost:5000/api/auth/register-employee';
+        ? `${getApiUrl()}/auth/employees/${employeeId}`
+        : `${getApiUrl()}/auth/register-employee`;
       
       const method = employeeId ? 'PUT' : 'POST';
       

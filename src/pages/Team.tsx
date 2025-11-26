@@ -18,6 +18,7 @@ import {
   Badge,
   BusinessCenter
 } from '@mui/icons-material';
+import { getApiUrl } from '../services/api';
 
 interface TeamMember {
   id: string;
@@ -64,7 +65,7 @@ const Team: React.FC = () => {
         setLoading(true);
         const token = localStorage.getItem('token');
         
-        const response = await fetch('http://localhost:5000/api/auth/team-members', {
+        const response = await fetch(`${getApiUrl()}/auth/team-members`, {
           headers: {
             'Authorization': `Bearer ${token}`,
           },
