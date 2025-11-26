@@ -47,7 +47,13 @@ const Employees: React.FC = () => {
       if (data.success && Array.isArray(data.data)) {
         console.log('DEBUG: employeeId for filter:', employeeId);
         console.log('DEBUG: All client createdBy values:', data.data.map((c: any) => c.createdBy));
-        return data.data.filter((client: any) => client.createdBy === employeeId);
+        return data.data.filter((client: any) => {
+          // Handle both string and object formats for createdBy
+          if (typeof client.createdBy === 'object' && client.createdBy._id) {
+            return client.createdBy._id === employeeId;
+          }
+          return client.createdBy === employeeId;
+        });
       }
       return [];
     } catch {
