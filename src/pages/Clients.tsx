@@ -500,7 +500,7 @@ const Clients: React.FC = () => {
             }}
             startIcon={<Delete />}
           >
-            Delete Client
+            Delete
           </Button>
         </DialogActions>
       </Dialog>
