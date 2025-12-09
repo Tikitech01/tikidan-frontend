@@ -22,6 +22,8 @@ import {
   Container,
   Stack,
   Menu,
+  FormControlLabel,
+  Checkbox,
 } from '@mui/material';
 import {
   MoreVert as MoreVertIcon,
@@ -31,19 +33,39 @@ import {
 import { Icon } from '@iconify/react';
 import { getApiUrl } from '../services/api';
 
+interface Client {
+  _id: string;
+  clientName: string;
+  locations?: Array<{
+    _id: string;
+    name: string;
+    contacts?: Array<{
+      _id: string;
+      name: string;
+      email: string;
+    }>;
+  }>;
+}
+
+interface Project {
+  _id: string;
+  title: string;
+}
+
 interface Meeting {
   _id?: string;
   id?: string;
   title?: string;
   date?: string;
   time?: string;
-  client?: string;
-  contactPerson?: string;
+  client?: string | { _id: string; clientName: string };
+  contactPerson?: string | { _id: string; name: string };
   products?: string[];
   comments?: string;
   attendees?: string[];
-  location?: string;
+  location?: string | { _id: string; name: string };
   status?: string;
+  project?: string | { _id: string; title: string };
   createdAt?: string;
   updatedAt?: string;
 }
@@ -58,19 +80,24 @@ const Meetings: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
+  const [clients, setClients] = useState<Client[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [formData, setFormData] = useState<Partial<Meeting>>({
-    title: '',
     date: '',
     time: '',
     client: '',
-    contactPerson: '',
-    products: [],
-    comments: '',
     location: '',
+    contactPerson: '',
+    comments: '',
+    products: [],
+    project: '',
   });
 
   useEffect(() => {
     fetchMeetings();
+    fetchClients();
+    fetchProjects();
   }, []);
 
   const fetchMeetings = async () => {
@@ -93,16 +120,60 @@ const Meetings: React.FC = () => {
     }
   };
 
+  const fetchClients = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      // Use the new endpoint that returns ALL clients without filtering
+      const response = await fetch(`${getApiUrl()}/clients/all-for-forms`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const clientsList = Array.isArray(data.data) ? data.data : data.clients || [];
+        setClients(clientsList);
+      }
+    } catch (error) {
+      console.error('Error fetching clients:', error);
+    }
+  };
+
+  const fetchProjects = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      // Use the new endpoint that returns ALL projects without filtering
+      const response = await fetch(`${getApiUrl()}/projects/all-for-forms`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const projectsList = Array.isArray(data.data) ? data.data : data.projects || [];
+        setProjects(projectsList);
+      }
+    } catch (error) {
+      console.error('Error fetching projects:', error);
+    }
+  };
+
   // Filter meetings
   useEffect(() => {
     let filtered = meetings;
 
     if (searchTerm) {
-      filtered = filtered.filter((m) =>
-        m.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        m.client?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        m.contactPerson?.toLowerCase().includes(searchTerm.toLowerCase())
-      );
+      filtered = filtered.filter((m) => {
+        const clientName = typeof m.client === 'string' ? m.client : m.client?.clientName || '';
+        const contactName = typeof m.contactPerson === 'string' ? m.contactPerson : m.contactPerson?.name || '';
+        return (
+          m.date?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          clientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          contactName.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+      });
     }
 
     setFilteredMeetings(filtered);
@@ -122,15 +193,16 @@ const Meetings: React.FC = () => {
   const handleOpenDialog = () => {
     setEditingMeetingId(undefined);
     setFormData({
-      title: '',
       date: '',
       time: '',
       client: '',
-      contactPerson: '',
-      products: [],
-      comments: '',
       location: '',
+      contactPerson: '',
+      comments: '',
+      products: [],
+      project: '',
     });
+    setSelectedClient(null);
     setOpenDialog(true);
   };
 
@@ -142,6 +214,10 @@ const Meetings: React.FC = () => {
     if (selectedMeeting) {
       setFormData(selectedMeeting);
       setEditingMeetingId(selectedMeeting._id || selectedMeeting.id);
+      // Set selected client for cascading dropdowns
+      const clientId = typeof selectedMeeting.client === 'string' ? selectedMeeting.client : selectedMeeting.client?._id;
+      const selectedClientObj = clients.find(c => c._id === clientId);
+      setSelectedClient(selectedClientObj || null);
       setOpenDialog(true);
     }
     handleMenuClose();
@@ -178,19 +254,42 @@ const Meetings: React.FC = () => {
       const method = editingMeetingId ? 'PUT' : 'POST';
       const endpoint = editingMeetingId ? `/meetings/${editingMeetingId}` : '/meetings';
 
+      // Prepare data - ensure IDs are stored as strings
+      const dataToSave = {
+        date: formData.date,
+        time: formData.time,
+        client: typeof formData.client === 'string' ? formData.client : formData.client?._id,
+        location: typeof formData.location === 'string' ? formData.location : formData.location?._id,
+        contactPerson: typeof formData.contactPerson === 'string' ? formData.contactPerson : formData.contactPerson?._id,
+        comments: formData.comments,
+        products: formData.products || [],
+        project: typeof formData.project === 'string' ? formData.project : formData.project?._id,
+      };
+
       const response = await fetch(`${getApiUrl()}${endpoint}`, {
         method,
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(dataToSave),
       });
 
       if (response.ok) {
         alert(editingMeetingId ? 'Meeting updated successfully' : 'Meeting created successfully');
         setOpenDialog(false);
         setEditingMeetingId(undefined);
+        setSelectedClient(null);
+        setFormData({
+          date: '',
+          time: '',
+          client: '',
+          location: '',
+          contactPerson: '',
+          comments: '',
+          products: [],
+          project: '',
+        });
         fetchMeetings();
       } else {
         alert('Failed to save meeting');
@@ -359,10 +458,10 @@ const Meetings: React.FC = () => {
                           {meeting.date ? new Date(meeting.date).toLocaleDateString() : '-'}
                         </TableCell>
                         <TableCell sx={{ fontSize: '0.875rem', color: '#6b7280' }}>
-                          {meeting.client || '-'}
+                          {typeof meeting.client === 'string' ? meeting.client : meeting.client?.clientName || '-'}
                         </TableCell>
                         <TableCell sx={{ fontSize: '0.875rem', color: '#6b7280' }}>
-                          {meeting.contactPerson || '-'}
+                          {typeof meeting.contactPerson === 'string' ? meeting.contactPerson : meeting.contactPerson?.name || '-'}
                         </TableCell>
                         <TableCell sx={{ fontSize: '0.875rem', color: '#6b7280' }}>
                           {meeting.products && Array.isArray(meeting.products) && meeting.products.length > 0
@@ -432,17 +531,11 @@ const Meetings: React.FC = () => {
 
       {/* Add/Edit Meeting Dialog */}
       <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
-        <DialogTitle>
+        <DialogTitle sx={{ fontSize: '1.25rem', fontWeight: 600 }}>
           {editingMeetingId ? 'Edit Meeting' : 'Add New Meeting'}
         </DialogTitle>
-        <DialogContent sx={{ pt: 2, display: 'flex', flexDirection: 'column', gap: 2.5 }}>
-          <TextField
-            fullWidth
-            label="Meeting Title"
-            value={formData.title || ''}
-            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-            size="small"
-          />
+        <DialogContent sx={{ pt: 3, display: 'flex', flexDirection: 'column', gap: 2 }}>
+          {/* Date and Time */}
           <TextField
             fullWidth
             label="Date"
@@ -451,6 +544,7 @@ const Meetings: React.FC = () => {
             onChange={(e) => setFormData({ ...formData, date: e.target.value })}
             size="small"
             InputLabelProps={{ shrink: true }}
+            required
           />
           <TextField
             fullWidth
@@ -461,41 +555,188 @@ const Meetings: React.FC = () => {
             size="small"
             InputLabelProps={{ shrink: true }}
           />
-          <TextField
-            fullWidth
-            label="Client Name"
-            value={formData.client || ''}
-            onChange={(e) => setFormData({ ...formData, client: e.target.value })}
-            size="small"
-          />
-          <TextField
-            fullWidth
-            label="Contact Person"
-            value={formData.contactPerson || ''}
-            onChange={(e) => setFormData({ ...formData, contactPerson: e.target.value })}
-            size="small"
-          />
-          <TextField
-            fullWidth
-            label="Location"
-            value={formData.location || ''}
-            onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-            size="small"
-          />
-          <TextField
-            fullWidth
-            label="Comments"
-            value={formData.comments || ''}
-            onChange={(e) => setFormData({ ...formData, comments: e.target.value })}
-            multiline
-            rows={3}
-            size="small"
-          />
+
+          {/* Client Dropdown with Tree Structure */}
+          <Box>
+            <Typography sx={{ fontSize: '0.875rem', fontWeight: 500, mb: 0.5, color: '#dc2626' }}>
+              * Client
+            </Typography>
+            <Select
+              fullWidth
+              size="small"
+              value={typeof formData.client === 'string' ? formData.client : (typeof formData.client === 'object' && formData.client?._id) ? formData.client._id : ''}
+              onChange={(e) => {
+                const selectedClientId = e.target.value;
+                const selectedClientObj = clients.find(c => c._id === selectedClientId);
+                setFormData({ ...formData, client: selectedClientId, location: '', contactPerson: '' });
+                setSelectedClient(selectedClientObj || null);
+              }}
+              displayEmpty
+            >
+              <MenuItem value="">Select Client</MenuItem>
+              {clients.map((client) => [
+                // Client header
+                <MenuItem key={`client-${client._id}`} value={client._id} sx={{ fontWeight: 600, backgroundColor: '#f3f4f6', color: '#1f2937' }}>
+                  📌 {client.clientName}
+                </MenuItem>,
+                // Locations under each client
+                ...(client.locations && client.locations.length > 0 ? client.locations.map((loc) => [
+                  // Location header
+                  <MenuItem key={`loc-header-${loc._id}`} disabled sx={{ pl: 4, fontWeight: 500, backgroundColor: '#fafbfc', color: '#4b5563', fontSize: '0.85rem' }}>
+                    └─ 📍 {loc.name}
+                  </MenuItem>,
+                  // Contacts under each location
+                  ...(loc.contacts && loc.contacts.length > 0 ? loc.contacts.map((contact) => (
+                    <MenuItem key={`contact-${contact._id}`} disabled sx={{ pl: 8, backgroundColor: '#ffffff', color: '#6b7280', fontSize: '0.8rem' }}>
+                      └─ 👤 {contact.name} ({contact.email})
+                    </MenuItem>
+                  )) : []),
+                ]) : []),
+              ])}
+            </Select>
+          </Box>
+
+          {/* Location Dropdown (Cascading) */}
+          <Box>
+            <Typography sx={{ fontSize: '0.875rem', fontWeight: 500, mb: 0.5, color: '#dc2626' }}>
+              * Client Location
+            </Typography>
+            <Select
+              fullWidth
+              size="small"
+              value={typeof formData.location === 'string' ? formData.location : (typeof formData.location === 'object' && formData.location?._id) ? formData.location._id : ''}
+              onChange={(e) => {
+                const selectedLocationId = e.target.value;
+                setFormData({ ...formData, location: selectedLocationId, contactPerson: '' });
+              }}
+              displayEmpty
+              disabled={!selectedClient}
+            >
+              <MenuItem value="">Select Client Location</MenuItem>
+              {selectedClient?.locations?.map((loc) => (
+                <MenuItem key={loc._id} value={loc._id}>
+                  {loc.name}
+                </MenuItem>
+              ))}
+            </Select>
+          </Box>
+
+          {/* Contact Person Dropdown (Cascading) */}
+          <Box>
+            <Typography sx={{ fontSize: '0.875rem', fontWeight: 500, mb: 0.5, color: '#dc2626' }}>
+              * Client Contact
+            </Typography>
+            <Select
+              fullWidth
+              size="small"
+              value={typeof formData.contactPerson === 'string' ? formData.contactPerson : (typeof formData.contactPerson === 'object' && formData.contactPerson?._id) ? formData.contactPerson._id : ''}
+              onChange={(e) => {
+                const selectedContactId = e.target.value;
+                setFormData({ ...formData, contactPerson: selectedContactId });
+              }}
+              displayEmpty
+              disabled={!selectedClient || !formData.location}
+            >
+              <MenuItem value="">Select Contact</MenuItem>
+              {selectedClient?.locations?.find(loc => loc._id === formData.location)?.contacts?.map((contact) => (
+                <MenuItem key={contact._id} value={contact._id}>
+                  {contact.name}
+                </MenuItem>
+              ))}
+            </Select>
+          </Box>
+
+          {/* Comment */}
+          <Box>
+            <Typography sx={{ fontSize: '0.875rem', fontWeight: 500, mb: 0.5, color: '#dc2626' }}>
+              * Comment
+            </Typography>
+            <TextField
+              fullWidth
+              value={formData.comments || ''}
+              onChange={(e) => setFormData({ ...formData, comments: e.target.value })}
+              multiline
+              rows={3}
+              size="small"
+              placeholder="Enter comments..."
+            />
+          </Box>
+
+          {/* Next Visit */}
+          <Box>
+            <Typography sx={{ fontSize: '0.875rem', fontWeight: 500, mb: 0.5, color: '#dc2626' }}>
+              * Next Visit
+            </Typography>
+            <Select
+              fullWidth
+              size="small"
+              displayEmpty
+            >
+              <MenuItem value="">Select Next Visit</MenuItem>
+              <MenuItem value="1_week">Next 1 Week</MenuItem>
+              <MenuItem value="2_weeks">Next 2 Weeks</MenuItem>
+              <MenuItem value="1_month">Next 1 Month</MenuItem>
+              <MenuItem value="later">Later</MenuItem>
+            </Select>
+          </Box>
+
+          {/* Products Checkboxes */}
+          <Box>
+            <Typography sx={{ fontSize: '0.875rem', fontWeight: 500, mb: 1, color: '#dc2626' }}>
+              * Product
+            </Typography>
+            <Box sx={{ pl: 1 }}>
+              {['Membranes', 'Spray', 'Coatings', 'Sealants', 'Drainage', 'XPS', 'Floorings'].map((product) => (
+                <FormControlLabel
+                  key={product}
+                  control={
+                    <Checkbox
+                      checked={Array.isArray(formData.products) && formData.products.includes(product)}
+                      onChange={(e) => {
+                        const currentProducts = Array.isArray(formData.products) ? formData.products : [];
+                        if (e.target.checked) {
+                          setFormData({ ...formData, products: [...currentProducts, product] });
+                        } else {
+                          setFormData({ ...formData, products: currentProducts.filter(p => p !== product) });
+                        }
+                      }}
+                      size="small"
+                    />
+                  }
+                  label={product}
+                  sx={{ display: 'block', mb: 0.5 }}
+                />
+              ))}
+            </Box>
+          </Box>
+
+          {/* Project Dropdown */}
+          <Box>
+            <Typography sx={{ fontSize: '0.875rem', fontWeight: 500, mb: 0.5 }}>
+              Project
+            </Typography>
+            <Select
+              fullWidth
+              size="small"
+              value={typeof formData.project === 'string' ? formData.project : (typeof formData.project === 'object' && formData.project?._id) ? formData.project._id : ''}
+              onChange={(e) => setFormData({ ...formData, project: e.target.value })}
+              displayEmpty
+            >
+              <MenuItem value="">Select Project</MenuItem>
+              {projects.map((project) => (
+                <MenuItem key={project._id} value={project._id}>
+                  {project.title}
+                </MenuItem>
+              ))}
+            </Select>
+          </Box>
         </DialogContent>
-        <DialogActions sx={{ p: 2 }}>
-          <Button onClick={handleCloseDialog}>Cancel</Button>
-          <Button variant="contained" onClick={handleSaveMeeting}>
-            {editingMeetingId ? 'Update' : 'Save'}
+        <DialogActions sx={{ p: 2.5, gap: 1 }}>
+          <Button onClick={handleCloseDialog} sx={{ color: '#6b7280' }}>
+            CANCEL
+          </Button>
+          <Button variant="contained" onClick={handleSaveMeeting} sx={{ backgroundColor: '#3b82f6' }}>
+            Save
           </Button>
         </DialogActions>
       </Dialog>
