@@ -343,7 +343,7 @@ const Projects: React.FC = () => {
             </Box>
             {/* Filters */}
             <Stack spacing={2} sx={{ mb: 3 }}>
-              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' }, gap: 2 }}>
+              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: userRole === 'admin' ? 'repeat(4, 1fr)' : 'repeat(3, 1fr)' }, gap: 2 }}>
                 <TextField
                   fullWidth
                   placeholder="Search projects..."
@@ -354,22 +354,24 @@ const Projects: React.FC = () => {
                   }}
                   size="small"
                 />
-                <FormControl fullWidth size="small">
-                  <Select
-                    value={selectedAssignee}
-                    onChange={(e) => setSelectedAssignee(e.target.value)}
-                  >
-                    <MenuItem value="All Assignee">All Assignee</MenuItem>
-                    {teamMembers.map((member) => (
-                      <MenuItem
-                        key={member.id || member._id}
-                        value={member.id || member._id}
-                      >
-                        {member.name}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
+                {userRole === 'admin' && (
+                  <FormControl fullWidth size="small">
+                    <Select
+                      value={selectedAssignee}
+                      onChange={(e) => setSelectedAssignee(e.target.value)}
+                    >
+                      <MenuItem value="All Assignee">All Assignee</MenuItem>
+                      {teamMembers.map((member) => (
+                        <MenuItem
+                          key={member.id || member._id}
+                          value={member.id || member._id}
+                        >
+                          {member.name}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                )}
                 <FormControl fullWidth size="small">
                   <Select
                     value={selectedStage}
@@ -541,117 +543,145 @@ const Projects: React.FC = () => {
           <EditIcon fontSize="small" sx={{ mr: 1 }} />
           Edit
         </ContextMenuItem>
-        <ContextMenuItem onClick={handleDeleteProject}>
-          <DeleteIcon fontSize="small" sx={{ mr: 1 }} />
-          Delete
-        </ContextMenuItem>
+        {userRole === 'admin' && (
+          <ContextMenuItem onClick={handleDeleteProject}>
+            <DeleteIcon fontSize="small" sx={{ mr: 1 }} />
+            Delete
+          </ContextMenuItem>
+        )}
       </Menu>
 
       {/* Add/Edit Project Dialog */}
       <Dialog open={showAddDialog} onClose={() => setShowAddDialog(false)} maxWidth="sm" fullWidth>
         <DialogTitle>
-          {editingProjectId ? 'Edit Project' : 'Add New Project'}
+          {editingProjectId 
+            ? (userRole === 'admin' ? 'Edit Project' : 'Update Project Status')
+            : 'Add New Project'}
         </DialogTitle>
         <DialogContent sx={{ pt: 2, display: 'flex', flexDirection: 'column', gap: 2.5 }}>
-          <Box>
-            <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600, color: '#1f2937' }}>
-              Project Name
-            </Typography>
-            <TextField
-              fullWidth
-              placeholder="Project Name"
-              value={formData.title || ''}
-              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              size="small"
-            />
-          </Box>
+          {userRole === 'admin' && (
+            <>
+              <Box>
+                <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600, color: '#1f2937' }}>
+                  Project Name
+                </Typography>
+                <TextField
+                  fullWidth
+                  placeholder="Project Name"
+                  value={formData.title || ''}
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  size="small"
+                />
+              </Box>
 
-          <Box>
-            <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600, color: '#1f2937' }}>
-              Project Type
-            </Typography>
-            <FormControl fullWidth size="small">
-              <Select
-                value={formData.projectType || ''}
-                onChange={(e) => setFormData({ ...formData, projectType: e.target.value })}
-                displayEmpty
-              >
-                <MenuItem value="">
-                  <em>Select Project Type</em>
-                </MenuItem>
-                <MenuItem value="residential">Residential</MenuItem>
-                <MenuItem value="hospital">Hospital</MenuItem>
-                <MenuItem value="hotel">Hotel</MenuItem>
-                <MenuItem value="commercial">Commercial Space</MenuItem>
-                <MenuItem value="airport">Airport</MenuItem>
-                <MenuItem value="railway">Railway</MenuItem>
-                <MenuItem value="mes">MES</MenuItem>
-                <MenuItem value="landmark">Landmark Project</MenuItem>
-              </Select>
-            </FormControl>
-          </Box>
+              <Box>
+                <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600, color: '#1f2937' }}>
+                  Project Type
+                </Typography>
+                <FormControl fullWidth size="small">
+                  <Select
+                    value={formData.projectType || ''}
+                    onChange={(e) => setFormData({ ...formData, projectType: e.target.value })}
+                    displayEmpty
+                  >
+                    <MenuItem value="">
+                      <em>Select Project Type</em>
+                    </MenuItem>
+                    <MenuItem value="residential">Residential</MenuItem>
+                    <MenuItem value="hospital">Hospital</MenuItem>
+                    <MenuItem value="hotel">Hotel</MenuItem>
+                    <MenuItem value="commercial">Commercial Space</MenuItem>
+                    <MenuItem value="airport">Airport</MenuItem>
+                    <MenuItem value="railway">Railway</MenuItem>
+                    <MenuItem value="mes">MES</MenuItem>
+                    <MenuItem value="landmark">Landmark Project</MenuItem>
+                  </Select>
+                </FormControl>
+              </Box>
 
-          <Box>
-            <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600, color: '#1f2937' }}>
-              Contractor
-            </Typography>
-            <TextField
-              fullWidth
-              placeholder="Contractor Name"
-              value={formData.contractor || ''}
-              onChange={(e) => setFormData({ ...formData, contractor: e.target.value })}
-              size="small"
-            />
-          </Box>
+              <Box>
+                <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600, color: '#1f2937' }}>
+                  Contractor
+                </Typography>
+                <TextField
+                  fullWidth
+                  placeholder="Contractor Name"
+                  value={formData.contractor || ''}
+                  onChange={(e) => setFormData({ ...formData, contractor: e.target.value })}
+                  size="small"
+                />
+              </Box>
 
-          <Box>
-            <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600, color: '#1f2937' }}>
-              Consultant
-            </Typography>
-            <TextField
-              fullWidth
-              placeholder="Consultant Name"
-              value={formData.consultant || ''}
-              onChange={(e) => setFormData({ ...formData, consultant: e.target.value })}
-              size="small"
-            />
-          </Box>
+              <Box>
+                <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600, color: '#1f2937' }}>
+                  Consultant
+                </Typography>
+                <TextField
+                  fullWidth
+                  placeholder="Consultant Name"
+                  value={formData.consultant || ''}
+                  onChange={(e) => setFormData({ ...formData, consultant: e.target.value })}
+                  size="small"
+                />
+              </Box>
 
-          <Box>
-            <Typography variant="subtitle2" sx={{ mb: 2, fontWeight: 600, color: '#1f2937' }}>
-              Products
-            </Typography>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-              {['Waterproofing Membranes', 'Acoustic insulation', 'Spray', 'Coatings', 'Drainage boards', 'Thermal Insulation', 'Floorings'].map((product) => (
-                <Box key={product} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <input
-                    type="checkbox"
-                    id={product}
-                    checked={
-                      formData.products && Array.isArray(formData.products)
-                        ? formData.products.includes(product)
-                        : false
-                    }
-                    onChange={(e) => {
-                      const currentProducts = formData.products && Array.isArray(formData.products) ? [...formData.products] : [];
-                      if (e.target.checked) {
-                        if (!currentProducts.includes(product)) {
-                          currentProducts.push(product);
+              <Box>
+                <Typography variant="subtitle2" sx={{ mb: 2, fontWeight: 600, color: '#1f2937' }}>
+                  Products
+                </Typography>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                  {['Waterproofing Membranes', 'Acoustic insulation', 'Spray', 'Coatings', 'Drainage boards', 'Thermal Insulation', 'Floorings'].map((product) => (
+                    <Box key={product} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <input
+                        type="checkbox"
+                        id={product}
+                        checked={
+                          formData.products && Array.isArray(formData.products)
+                            ? formData.products.includes(product)
+                            : false
                         }
-                      } else {
-                        currentProducts.splice(currentProducts.indexOf(product), 1);
-                      }
-                      setFormData({ ...formData, products: currentProducts });
-                    }}
-                    style={{ width: 20, height: 20, cursor: 'pointer' }}
-                  />
-                  <label htmlFor={product} style={{ cursor: 'pointer', userSelect: 'none', color: '#4b5563' }}>
-                    {product}
-                  </label>
+                        onChange={(e) => {
+                          const currentProducts = formData.products && Array.isArray(formData.products) ? [...formData.products] : [];
+                          if (e.target.checked) {
+                            if (!currentProducts.includes(product)) {
+                              currentProducts.push(product);
+                            }
+                          } else {
+                            currentProducts.splice(currentProducts.indexOf(product), 1);
+                          }
+                          setFormData({ ...formData, products: currentProducts });
+                        }}
+                        style={{ width: 20, height: 20, cursor: 'pointer' }}
+                      />
+                      <label htmlFor={product} style={{ cursor: 'pointer', userSelect: 'none', color: '#4b5563' }}>
+                        {product}
+                      </label>
+                    </Box>
+                  ))}
                 </Box>
-              ))}
-            </Box>
-          </Box>
+              </Box>
+
+              <TextField
+                fullWidth
+                label="Start Date"
+                type="date"
+                value={formData.startDate || ''}
+                onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+                size="small"
+                InputLabelProps={{ shrink: true }}
+              />
+
+              <TextField
+                fullWidth
+                label="End Date"
+                type="date"
+                value={formData.endDate || ''}
+                onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+                size="small"
+                InputLabelProps={{ shrink: true }}
+              />
+            </>
+          )}
 
           <Box>
             <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600, color: '#1f2937' }}>
@@ -685,6 +715,7 @@ const Projects: React.FC = () => {
                 value={formData.assignTo || ''}
                 onChange={(e) => setFormData({ ...formData, assignTo: e.target.value })}
                 displayEmpty
+                disabled={userRole !== 'admin'} // Disable for non-admin users
               >
                 <MenuItem value="">
                   <em>Select Team Member</em>
@@ -707,25 +738,29 @@ const Projects: React.FC = () => {
             </FormControl>
           </Box>
 
-          <TextField
-            fullWidth
-            label="Start Date"
-            type="date"
-            value={formData.startDate || ''}
-            onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-            size="small"
-            InputLabelProps={{ shrink: true }}
-          />
+          {userRole === 'admin' && (
+            <>
+              <TextField
+                fullWidth
+                label="Start Date"
+                type="date"
+                value={formData.startDate || ''}
+                onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+                size="small"
+                InputLabelProps={{ shrink: true }}
+              />
 
-          <TextField
-            fullWidth
-            label="End Date"
-            type="date"
-            value={formData.endDate || ''}
-            onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
-            size="small"
-            InputLabelProps={{ shrink: true }}
-          />
+              <TextField
+                fullWidth
+                label="End Date"
+                type="date"
+                value={formData.endDate || ''}
+                onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+                size="small"
+                InputLabelProps={{ shrink: true }}
+              />
+            </>
+          )}
 
           <TextField
             fullWidth
