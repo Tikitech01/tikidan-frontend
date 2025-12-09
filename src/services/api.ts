@@ -1,8 +1,25 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
+// Determine the API base URL based on environment
+const getBaseURL = (): string => {
+  // First check environment variable
+  if (import.meta.env.VITE_API_BASE_URL) {
+    return import.meta.env.VITE_API_BASE_URL;
+  }
+  
+  // Check if we're in production (Vercel deployment)
+  if (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && !window.location.hostname.includes('127.0.0.1')) {
+    // Production - use the Vercel backend URL
+    return 'https://tikidan-backend.vercel.app/api';
+  }
+  
+  // Development - use localhost
+  return 'http://localhost:5000/api';
+};
+
+const API_BASE_URL = getBaseURL();
 
 // Helper function to get the API URL
 export const getApiUrl = (): string => {
-  return import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
+  return API_BASE_URL;
 };
 
 export interface ApiResponse<T> {

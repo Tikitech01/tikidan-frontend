@@ -65,6 +65,12 @@ const Team: React.FC = () => {
         setLoading(true);
         const token = localStorage.getItem('token');
         
+        if (!token) {
+          setError('No authentication token found');
+          setLoading(false);
+          return;
+        }
+        
         const response = await fetch(`${getApiUrl()}/auth/team-members`, {
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -73,13 +79,22 @@ const Team: React.FC = () => {
         
         if (response.ok) {
           const data = await response.json();
-          setTeamMembers(data.teamMembers);
+          if (data.success && data.teamMembers) {
+            setTeamMembers(data.teamMembers);
+          } else {
+            setTeamMembers([]);
+          }
+        } else if (response.status === 401) {
+          setError('Unauthorized. Please login again.');
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
         } else {
-          setError('Failed to fetch team members');
+          const errorData = await response.json();
+          setError(errorData.message || 'Failed to fetch team members');
         }
       } catch (error) {
         console.error('Error fetching team members:', error);
-        setError('Error fetching team members');
+        setError(`Error fetching team members: ${error instanceof Error ? error.message : 'Unknown error'}`);
       } finally {
         setLoading(false);
       }

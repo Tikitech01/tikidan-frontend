@@ -221,8 +221,7 @@ const Clients: React.FC = () => {
     if (clientToDelete) {
       try {
         const token = localStorage.getItem('token');
-        const apiUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
-        const response = await fetch(`${apiUrl}/clients/${clientToDelete.id}`, {
+        const response = await fetch(`${getApiUrl()}/clients/${clientToDelete.id}`, {
           method: 'DELETE',
           headers: {
             'Content-Type': 'application/json',
