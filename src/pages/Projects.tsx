@@ -35,27 +35,32 @@ import { Icon } from '@iconify/react';
 import { getApiUrl } from '../services/api';
 
 interface Project {
-  _id?: string;
-  id?: string;
+  _id: string;
+  id: string;
   title: string;
   description?: string;
-  startDate?: string;
+  startDate: string;
   endDate?: string;
-  projectType?: string;
+  budget?: number;
+  status: string;
+  priority: string;
+  client?: string;
+  teamMembers?: Array<{
+    name: string;
+    role: string;
+    email?: string;
+  }>;
+  progress?: number;
+  notes?: string;
   contractor?: string;
   consultant?: string;
-  sizeOfProject?: number;
   products?: string[];
+  assignBy?: string | { _id: string; name: string; email?: string };
+  assignTo?: string | { _id: string; name: string; email?: string };
   stage?: string;
-  assignTo?: string;
-  assignBy?: string;
-  meeting?: string;
+  projectType?: string;
   lastUpdate?: string;
-  createdBy?: {
-    _id: string;
-    name: string;
-    email: string;
-  };
+  meeting?: string;
 }
 
 const Projects: React.FC = () => {
@@ -76,14 +81,15 @@ const Projects: React.FC = () => {
     description: '',
     startDate: '',
     endDate: '',
+    budget: undefined,
+    status: 'active',
+    priority: 'medium',
+    client: '',
     stage: '',
     projectType: '',
     contractor: '',
     consultant: '',
-    sizeOfProject: undefined,
     products: [],
-    assignTo: '',
-    meeting: '',
   });
 
   // Fetch projects and team members
@@ -111,6 +117,7 @@ const Projects: React.FC = () => {
       if (response.ok) {
         const data = await response.json();
         if (data.success && Array.isArray(data.teamMembers)) {
+          console.log('Fetched team members:', data.teamMembers); // Debug log
           setTeamMembers(data.teamMembers);
         }
       } else {
@@ -153,18 +160,18 @@ const Projects: React.FC = () => {
         (p) =>
           p.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
           p.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          p.contractor?.toLowerCase().includes(searchTerm.toLowerCase())
+          p.client?.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
     // Assignee filter
     if (selectedAssignee !== 'All Assignee') {
       filtered = filtered.filter((p) => {
-        if (!p.assignTo) return false;
+        if (!p.assignTo) return false; // Skip if assignTo is null or undefined
         if (typeof p.assignTo === 'object' && p.assignTo !== null) {
-          return (p.assignTo as any)._id === selectedAssignee || (p.assignTo as any).id === selectedAssignee;
+          return (p.assignTo as any)._id === selectedAssignee; // Compare object ID
         }
-        return p.assignTo === selectedAssignee;
+        return p.assignTo === selectedAssignee; // Compare string value
       });
     }
 
@@ -188,8 +195,16 @@ const Projects: React.FC = () => {
 
   const handleEditProject = () => {
     if (selectedProject) {
-      setFormData(selectedProject);
-      setEditingProjectId(selectedProject.id);
+      // Extract assignTo ID if it's an object
+      const assignToId = selectedProject.assignTo && typeof selectedProject.assignTo === 'object'
+        ? (selectedProject.assignTo as any)._id
+        : selectedProject.assignTo;
+
+      setFormData({
+        ...selectedProject,
+        assignTo: assignToId, // Set just the ID
+      });
+      setEditingProjectId(selectedProject._id || selectedProject.id); // Use _id first
       setShowAddDialog(true);
     }
     handleMenuClose();
@@ -199,7 +214,8 @@ const Projects: React.FC = () => {
     if (selectedProject && window.confirm('Are you sure you want to delete this project?')) {
       try {
         const token = localStorage.getItem('token');
-        const response = await fetch(`${getApiUrl()}/projects/${selectedProject.id}`, {
+        const projectId = selectedProject._id || selectedProject.id; // Use _id if available
+        const response = await fetch(`${getApiUrl()}/projects/${projectId}`, {
           method: 'DELETE',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -207,7 +223,7 @@ const Projects: React.FC = () => {
         });
 
         if (response.ok) {
-          setProjects(projects.filter((p) => p.id !== selectedProject.id));
+          setProjects(projects.filter((p) => (p._id || p.id) !== projectId));
           alert('Project deleted successfully');
         } else {
           alert('Failed to delete project');
@@ -226,13 +242,21 @@ const Projects: React.FC = () => {
       const method = editingProjectId ? 'PUT' : 'POST';
       const endpoint = editingProjectId ? `/projects/${editingProjectId}` : '/projects';
 
+      // Prepare data to send - convert assignTo object to ID if needed
+      const dataToSend = {
+        ...formData,
+        assignTo: formData.assignTo && typeof formData.assignTo === 'object' 
+          ? (formData.assignTo as any)._id 
+          : formData.assignTo
+      };
+
       const response = await fetch(`${getApiUrl()}${endpoint}`, {
         method,
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(dataToSend),
       });
 
       if (response.ok) {
@@ -244,14 +268,14 @@ const Projects: React.FC = () => {
           description: '',
           startDate: '',
           endDate: '',
+          budget: undefined,
+          status: 'active',
+          priority: 'medium',
+          client: '',
           stage: '',
-          projectType: '',
           contractor: '',
           consultant: '',
-          sizeOfProject: undefined,
           products: [],
-          assignTo: '',
-          meeting: '',
         });
         fetchProjects();
       } else {
@@ -289,14 +313,14 @@ const Projects: React.FC = () => {
                     description: '',
                     startDate: '',
                     endDate: '',
-                    stage: '',
-                    projectType: '',
+                    budget: undefined,
+                    status: 'active',
+                    priority: 'medium',
+                    client: '',
+                    stage: 'planning',
                     contractor: '',
                     consultant: '',
-                    sizeOfProject: undefined,
                     products: [],
-                    assignTo: '',
-                    meeting: '',
                   });
                   setShowAddDialog(true);
                 }}
@@ -337,7 +361,10 @@ const Projects: React.FC = () => {
                   >
                     <MenuItem value="All Assignee">All Assignee</MenuItem>
                     {teamMembers.map((member) => (
-                      <MenuItem key={member._id || member.id} value={member._id || member.id}>
+                      <MenuItem
+                        key={member.id || member._id}
+                        value={member.id || member._id}
+                      >
                         {member.name}
                       </MenuItem>
                     ))}
@@ -399,10 +426,14 @@ const Projects: React.FC = () => {
                     </TableRow>
                   ) : (
                     filteredProjects.map((project) => (
-                      <TableRow key={project.id} hover sx={{ 
-                        '&:hover': { backgroundColor: '#f9fafb' },
-                        borderBottom: '1px solid #e5e7eb'
-                      }}>
+                      <TableRow
+                        key={project._id || project.id} // Ensure unique key for each row
+                        hover
+                        sx={{ 
+                          '&:hover': { backgroundColor: '#f9fafb' },
+                          borderBottom: '1px solid #e5e7eb'
+                        }}
+                      >
                         <TableCell sx={{ fontSize: '0.875rem', color: '#6b7280' }}>
                           {project.startDate
                             ? new Date(project.startDate).toLocaleDateString()
@@ -424,12 +455,12 @@ const Projects: React.FC = () => {
                         </TableCell>
                         <TableCell sx={{ fontSize: '0.875rem', color: '#6b7280' }}>
                           {project.assignBy && typeof project.assignBy === 'object' 
-                            ? (project.assignBy as any).name 
+                            ? project.assignBy.name // Render name if assignBy is an object
                             : project.assignBy || '-'}
                         </TableCell>
                         <TableCell sx={{ fontSize: '0.875rem', color: '#6b7280' }}>
                           {project.assignTo && typeof project.assignTo === 'object' 
-                            ? (project.assignTo as any).name 
+                            ? project.assignTo.name // Render name if assignTo is an object
                             : project.assignTo || '-'}
                         </TableCell>
                         <TableCell sx={{ fontSize: '0.875rem' }}>
@@ -587,20 +618,6 @@ const Projects: React.FC = () => {
           </Box>
 
           <Box>
-            <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600, color: '#1f2937' }}>
-              Size of Project(SQM)
-            </Typography>
-            <TextField
-              fullWidth
-              placeholder="Size of Project in SQM"
-              type="number"
-              value={formData.sizeOfProject || ''}
-              onChange={(e) => setFormData({ ...formData, sizeOfProject: parseInt(e.target.value) })}
-              size="small"
-            />
-          </Box>
-
-          <Box>
             <Typography variant="subtitle2" sx={{ mb: 2, fontWeight: 600, color: '#1f2937' }}>
               Products
             </Typography>
@@ -674,7 +691,10 @@ const Projects: React.FC = () => {
                 </MenuItem>
                 {userRole === 'admin' && teamMembers.length > 0 ? (
                   teamMembers.map((member) => (
-                    <MenuItem key={member._id || member.id} value={member._id || member.id}>
+                    <MenuItem
+                      key={member.id || member._id}
+                      value={member.id || member._id}
+                    >
                       {member.name}
                     </MenuItem>
                   ))
