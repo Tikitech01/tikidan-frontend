@@ -83,6 +83,8 @@ const Meetings: React.FC = () => {
   const [clients, setClients] = useState<Client[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+  const [gpsCoordinates, setGpsCoordinates] = useState<{ latitude: number; longitude: number; accuracy: number } | null>(null);
+  const [showLocationPermissionDialog, setShowLocationPermissionDialog] = useState(false);
   const [formData, setFormData] = useState<Partial<Meeting>>({
     date: '',
     time: '',
@@ -191,6 +193,58 @@ const Meetings: React.FC = () => {
   };
 
   const handleOpenDialog = () => {
+    // Show location permission dialog
+    setShowLocationPermissionDialog(true);
+  };
+
+  const handleAllowLocation = () => {
+    // Request location access when user clicks Allow
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          console.log('Location access granted:', position.coords);
+          // Store GPS coordinates for verification
+          setGpsCoordinates({
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+            accuracy: position.coords.accuracy
+          });
+          // Location access granted, proceed to open dialog
+          setShowLocationPermissionDialog(false);
+          setEditingMeetingId(undefined);
+          setFormData({
+            date: '',
+            time: '',
+            client: '',
+            location: '',
+            contactPerson: '',
+            comments: '',
+            products: [],
+            project: '',
+          });
+          setSelectedClient(null);
+          setOpenDialog(true);
+        },
+        (error) => {
+          console.error('Location access denied:', error);
+          setShowLocationPermissionDialog(false);
+          // Show alert that location access is required
+          alert('Location access is required to add a meeting. Please enable location permissions in your browser settings and try again.');
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 5000,
+          maximumAge: 0
+        }
+      );
+    } else {
+      alert('Geolocation is not supported by your browser');
+    }
+  };
+
+  const handleDenyLocation = () => {
+    setShowLocationPermissionDialog(false);
+    // Still allow adding meeting without location
     setEditingMeetingId(undefined);
     setFormData({
       date: '',
@@ -204,6 +258,10 @@ const Meetings: React.FC = () => {
     });
     setSelectedClient(null);
     setOpenDialog(true);
+  };
+
+  const handleCancelLocationPermission = () => {
+    setShowLocationPermissionDialog(false);
   };
 
   const handleCloseDialog = () => {
@@ -264,6 +322,12 @@ const Meetings: React.FC = () => {
         comments: formData.comments,
         products: formData.products || [],
         project: typeof formData.project === 'string' ? formData.project : formData.project?._id,
+        // Include GPS coordinates for location verification
+        gpsCoordinates: gpsCoordinates ? {
+          latitude: gpsCoordinates.latitude,
+          longitude: gpsCoordinates.longitude,
+          accuracy: gpsCoordinates.accuracy
+        } : null
       };
 
       const response = await fetch(`${getApiUrl()}${endpoint}`, {
@@ -280,6 +344,7 @@ const Meetings: React.FC = () => {
         setOpenDialog(false);
         setEditingMeetingId(undefined);
         setSelectedClient(null);
+        setGpsCoordinates(null);
         setFormData({
           date: '',
           time: '',
@@ -292,10 +357,12 @@ const Meetings: React.FC = () => {
         });
         fetchMeetings();
       } else {
-        alert('Failed to save meeting');
+        const errorData = await response.json();
+        alert(`Failed to save meeting: ${errorData.message || 'Unknown error'}`);
       }
     } catch (error) {
       console.error('Error saving meeting:', error);
+      alert(`Error saving meeting: ${error}`);
     }
   };
 
@@ -737,6 +804,45 @@ const Meetings: React.FC = () => {
           </Button>
           <Button variant="contained" onClick={handleSaveMeeting} sx={{ backgroundColor: '#3b82f6' }}>
             Save
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Location Permission Dialog */}
+      <Dialog
+        open={showLocationPermissionDialog}
+        onClose={handleCancelLocationPermission}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle sx={{ 
+          backgroundColor: '#f3f4f6', 
+          borderBottom: '1px solid #e5e7eb',
+          fontWeight: 600
+        }}>
+          📍 Location Permission
+        </DialogTitle>
+        <DialogContent sx={{ mt: 2 }}>
+          <Typography sx={{ mb: 2, color: '#374151', fontSize: '0.95rem' }}>
+            We need access to your location to verify your meeting locations for admin tracking purposes.
+          </Typography>
+          <Typography sx={{ color: '#6b7280', fontSize: '0.875rem', fontStyle: 'italic' }}>
+            Your GPS coordinates will be captured and stored along with your meeting details.
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ p: 2.5, gap: 1 }}>
+          <Button 
+            onClick={handleDenyLocation}
+            sx={{ color: '#6b7280' }}
+          >
+            Add Without Location
+          </Button>
+          <Button 
+            variant="contained" 
+            onClick={handleAllowLocation}
+            sx={{ backgroundColor: '#10b981' }}
+          >
+            Allow Location Access
           </Button>
         </DialogActions>
       </Dialog>

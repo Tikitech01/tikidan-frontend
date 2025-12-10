@@ -1,23 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  Typography, 
-  Box, 
   Card, 
-  CardContent, 
-  Avatar, 
-  Chip, 
-  Container,
-  CircularProgress,
-  Alert,
-  Divider,
-  Stack
-} from '@mui/material';
-import {
-  Person,
-  Email,
+  Table, 
+  Form, 
+  InputGroup,
   Badge,
-  BusinessCenter
-} from '@mui/icons-material';
+  Alert,
+  Spinner
+} from 'react-bootstrap';
+import { Icon } from '@iconify/react';
 import { getApiUrl } from '../services/api';
 
 interface TeamMember {
@@ -27,40 +18,29 @@ interface TeamMember {
   designation: string;
   role: string;
   employeeId: string;
+  meetings: number;
+  average: string | number;
 }
 
-interface CurrentUser {
+interface ManagerInfo {
   name: string;
+  email: string;
   designation: string;
   role: string;
 }
 
 const Team: React.FC = () => {
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
-  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
+  const [managerInfo, setManagerInfo] = useState<ManagerInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sortField, setSortField] = useState<keyof TeamMember>('name');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 
-  // Fetch current user data
+  // Fetch team hierarchy
   useEffect(() => {
-    const fetchCurrentUser = () => {
-      const userData = localStorage.getItem('user');
-      if (userData) {
-        const user = JSON.parse(userData);
-        setCurrentUser({
-          name: user.name || '',
-          designation: user.designation || '',
-          role: user.role || ''
-        });
-      }
-    };
-
-    fetchCurrentUser();
-  }, []);
-
-  // Fetch team members
-  useEffect(() => {
-    const fetchTeamMembers = async () => {
+    const fetchTeamHierarchy = async () => {
       try {
         setLoading(true);
         const token = localStorage.getItem('token');
@@ -71,7 +51,7 @@ const Team: React.FC = () => {
           return;
         }
         
-        const response = await fetch(`${getApiUrl()}/auth/team-members`, {
+        const response = await fetch(`${getApiUrl()}/auth/team-hierarchy`, {
           headers: {
             'Authorization': `Bearer ${token}`,
           },
@@ -79,8 +59,9 @@ const Team: React.FC = () => {
         
         if (response.ok) {
           const data = await response.json();
-          if (data.success && data.teamMembers) {
-            setTeamMembers(data.teamMembers);
+          if (data.success && data.data) {
+            setManagerInfo(data.data.manager);
+            setTeamMembers(data.data.directReports);
           } else {
             setTeamMembers([]);
           }
@@ -93,15 +74,39 @@ const Team: React.FC = () => {
           setError(errorData.message || 'Failed to fetch team members');
         }
       } catch (error) {
-        console.error('Error fetching team members:', error);
+        console.error('Error fetching team hierarchy:', error);
         setError(`Error fetching team members: ${error instanceof Error ? error.message : 'Unknown error'}`);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchTeamMembers();
+    fetchTeamHierarchy();
   }, []);
+
+  const handleSort = (field: keyof TeamMember) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
+
+  const filteredAndSortedMembers = teamMembers
+    .filter(member =>
+      member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      member.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      member.designation.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+    .sort((a, b) => {
+      const aValue = a[sortField];
+      const bValue = b[sortField];
+      
+      if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
+      if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
+      return 0;
+    });
 
   const getRoleColor = (role: string) => {
     switch (role) {
@@ -120,20 +125,20 @@ const Team: React.FC = () => {
 
   if (loading) {
     return (
-      <Container maxWidth="lg" sx={{ mt: 4, textAlign: 'center' }}>
-        <CircularProgress />
-        <Typography variant="body1" sx={{ mt: 2 }}>
-          Loading your team...
-        </Typography>
-      </Container>
+      <div style={{ textAlign: 'center', padding: '40px', marginTop: '20px' }}>
+        <Spinner animation="border" role="status">
+          <span className="visually-hidden">Loading...</span>
+        </Spinner>
+        <p style={{ marginTop: '20px', color: '#666' }}>Loading your team...</p>
+      </div>
     );
   }
 
   if (error) {
     return (
-      <Container maxWidth="lg" sx={{ mt: 4 }}>
-        <Alert severity="error">{error}</Alert>
-      </Container>
+      <div style={{ padding: '20px' }}>
+        <Alert variant="danger">{error}</Alert>
+      </div>
     );
   }
 
@@ -146,157 +151,245 @@ const Team: React.FC = () => {
         </div>
       </div>
 
-      <Container maxWidth="lg" sx={{ mt: 2, mb: 2 }}>
-      <Card
-        elevation={1}
-        sx={{
-          backgroundColor: '#ffffff',
-          borderRadius: 1,
-          border: '1px solid #e2e8f0',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-        }}
-      >
-        <CardContent sx={{ p: 2 }}>
-          <Box sx={{ mb: 2 }}>
-            <Typography 
-              variant="h6" 
-              gutterBottom 
-              sx={{ 
-                fontSize: '1.1rem', 
-                fontWeight: 600, 
-                color: '#1e293b',
-                mb: 1 
-              }}
-            >
-              My Team
-            </Typography>
-            
-            {currentUser && (
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
-                <Avatar sx={{ bgcolor: getRoleColor(currentUser.role), width: 32, height: 32 }}>
-                  <Person fontSize="small" />
-                </Avatar>
-                <Box>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 500, fontSize: '0.85rem', color: '#1e293b' }}>
-                    {currentUser.name}
-                  </Typography>
-                  <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.7rem' }}>
-                    {currentUser.designation}
-                  </Typography>
-                </Box>
-                <Chip 
-                  label={currentUser.role.replace('_', ' ').toUpperCase()} 
-                  size="small"
-                  sx={{ 
-                    bgcolor: getRoleColor(currentUser.role),
-                    color: 'white',
-                    fontWeight: 500,
-                    fontSize: '0.6rem',
-                    height: 20,
-                    minHeight: 'auto'
-                  }}
-                />
-              </Box>
-            )}
-            
-            <Divider sx={{ mb: 2 }} />
-          </Box>
-
-          {teamMembers.length === 0 ? (
-            <Box sx={{ textAlign: 'center', py: 4 }}>
-              <BusinessCenter sx={{ fontSize: 40, color: '#94a3b8', mb: 1.5 }} />
-              <Typography variant="subtitle2" sx={{ color: '#64748b', mb: 0.5 }}>
-                No Team Members
-              </Typography>
-              <Typography variant="body2" sx={{ color: '#94a3b8', fontSize: '0.8rem' }}>
-                You don't have any team members reporting to you yet.
-              </Typography>
-            </Box>
-          ) : (
-            <Box>
-              <Typography 
-                variant="subtitle1" 
-                sx={{ mb: 2, fontWeight: 500, color: '#1e293b', fontSize: '0.9rem' }}
-              >
-                Team Members ({teamMembers.length})
-              </Typography>
-              
-              <Stack spacing={1.5}>
-                {teamMembers.map((member) => (
-                  <Card 
-                    key={member.id}
-                    variant="outlined"
-                    sx={{
-                      border: '1px solid #e2e8f0',
-                      transition: 'transform 0.2s, box-shadow 0.2s',
-                      '&:hover': {
-                        transform: 'translateY(-1px)',
-                        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
-                      }
+      <div style={{ padding: '20px' }}>
+        <Card className="border-0 shadow-sm">
+          <Card.Body>
+            {/* Manager Info */}
+            {managerInfo && (
+              <div style={{ marginBottom: '30px', paddingBottom: '20px', borderBottom: '1px solid #e0e0e0' }}>
+                <h6 style={{ marginBottom: '15px', fontWeight: 600, color: '#333' }}>Your Information</h6>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                  <div
+                    style={{
+                      width: '40px',
+                      height: '40px',
+                      borderRadius: '50%',
+                      backgroundColor: getRoleColor(managerInfo.role),
+                      color: 'white',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontWeight: 600,
+                      fontSize: '14px'
                     }}
                   >
-                    <CardContent sx={{ p: 1.5 }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                        <Avatar sx={{ bgcolor: getRoleColor(member.role), width: 28, height: 28, mr: 1 }}>
-                          <Person fontSize="small" />
-                        </Avatar>
-                        <Box sx={{ flexGrow: 1 }}>
-                          <Typography 
-                            variant="subtitle2" 
-                            sx={{ 
-                              fontWeight: 500, 
-                              fontSize: '0.85rem',
-                              color: '#1e293b'
+                    {managerInfo.name
+                      .split(' ')
+                      .map(word => word.charAt(0))
+                      .join('')
+                      .toUpperCase()
+                      .slice(0, 2)}
+                  </div>
+                  <div>
+                    <p style={{ margin: 0, fontWeight: 600, color: '#333', fontSize: '14px' }}>
+                      {managerInfo.name}
+                    </p>
+                    <p style={{ margin: '3px 0 0 0', fontSize: '12px', color: '#666' }}>
+                      {managerInfo.designation}
+                    </p>
+                  </div>
+                  <Badge bg="secondary" style={{ marginLeft: 'auto' }}>
+                    {managerInfo.role.replace(/_/g, ' ').toUpperCase()}
+                  </Badge>
+                </div>
+              </div>
+            )}
+
+            {/* Search Bar */}
+            <div style={{ marginBottom: '20px' }}>
+              <InputGroup>
+                <InputGroup.Text style={{ backgroundColor: '#f5f5f5', border: '1px solid #ddd' }}>
+                  <Icon icon="mdi:magnify" />
+                </InputGroup.Text>
+                <Form.Control
+                  placeholder="Search by name, email, or designation..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  style={{ border: '1px solid #ddd' }}
+                />
+              </InputGroup>
+            </div>
+
+            {/* Pagination info */}
+            <div style={{ marginBottom: '15px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <Form.Select style={{ width: '80px' }} defaultValue="10">
+                <option>10</option>
+                <option>25</option>
+                <option>50</option>
+              </Form.Select>
+              <span style={{ fontSize: '12px', color: '#666' }}>
+                Showing {Math.min(10, filteredAndSortedMembers.length)} of {filteredAndSortedMembers.length} entries
+              </span>
+            </div>
+
+            {/* Team Members Table */}
+            {filteredAndSortedMembers.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '40px', color: '#999' }}>
+                <Icon icon="mdi:folder-open" style={{ fontSize: '48px', marginBottom: '10px' }} />
+                <p>No team members found</p>
+              </div>
+            ) : (
+              <div className="table-responsive">
+                <Table hover className="align-middle" style={{ marginBottom: 0 }}>
+                  <thead style={{ backgroundColor: '#f5f5f5' }}>
+                    <tr>
+                      <th style={{ fontWeight: 600, color: '#666', fontSize: '12px', borderBottom: '1px solid #ddd' }}>
+                        <button
+                          onClick={() => handleSort('name')}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            cursor: 'pointer',
+                            color: '#666',
+                            fontWeight: 600,
+                            fontSize: '12px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '5px'
+                          }}
+                        >
+                          Sales Person
+                          <Icon
+                            icon={
+                              sortField === 'name' && sortDirection === 'desc'
+                                ? 'mdi:chevron-down'
+                                : 'mdi:chevron-up'
+                            }
+                            width={16}
+                          />
+                        </button>
+                      </th>
+                      <th style={{ fontWeight: 600, color: '#666', fontSize: '12px', borderBottom: '1px solid #ddd' }}>
+                        <button
+                          onClick={() => handleSort('meetings')}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            cursor: 'pointer',
+                            color: '#666',
+                            fontWeight: 600,
+                            fontSize: '12px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '5px'
+                          }}
+                        >
+                          Meetings
+                          <Icon
+                            icon={
+                              sortField === 'meetings' && sortDirection === 'desc'
+                                ? 'mdi:chevron-down'
+                                : 'mdi:chevron-up'
+                            }
+                            width={16}
+                          />
+                        </button>
+                      </th>
+                      <th style={{ fontWeight: 600, color: '#666', fontSize: '12px', borderBottom: '1px solid #ddd' }}>
+                        <button
+                          onClick={() => handleSort('average')}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            cursor: 'pointer',
+                            color: '#666',
+                            fontWeight: 600,
+                            fontSize: '12px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '5px'
+                          }}
+                        >
+                          Average
+                          <Icon
+                            icon={
+                              sortField === 'average' && sortDirection === 'desc'
+                                ? 'mdi:chevron-down'
+                                : 'mdi:chevron-up'
+                            }
+                            width={16}
+                          />
+                        </button>
+                      </th>
+                      <th style={{ fontWeight: 600, color: '#666', fontSize: '12px', textAlign: 'center', borderBottom: '1px solid #ddd' }}>
+                        Actions
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredAndSortedMembers.map((member) => (
+                      <tr key={member.id} style={{ borderBottom: '1px solid #eee' }}>
+                        <td>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                            <div
+                              style={{
+                                width: '40px',
+                                height: '40px',
+                                borderRadius: '4px',
+                                backgroundColor: '#4CAF50',
+                                color: 'white',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontWeight: 600,
+                                fontSize: '12px',
+                                flexShrink: 0
+                              }}
+                            >
+                              {member.name
+                                .split(' ')
+                                .map(word => word.charAt(0))
+                                .join('')
+                                .toUpperCase()
+                                .slice(0, 2)}
+                            </div>
+                            <div>
+                              <p style={{ margin: 0, fontWeight: 600, fontSize: '13px', color: '#333' }}>
+                                {member.name}
+                              </p>
+                              <p style={{ margin: '3px 0 0 0', fontSize: '11px', color: '#999' }}>
+                                {member.designation}
+                              </p>
+                            </div>
+                          </div>
+                        </td>
+                        <td>
+                          <span style={{ fontWeight: 600, fontSize: '13px', color: '#333' }}>
+                            {member.meetings}
+                          </span>
+                        </td>
+                        <td>
+                          <span style={{ fontSize: '13px', color: '#666' }}>
+                            {member.average}
+                          </span>
+                        </td>
+                        <td style={{ textAlign: 'center' }}>
+                          <button
+                            style={{
+                              background: '#4CAF50',
+                              border: 'none',
+                              borderRadius: '50%',
+                              width: '36px',
+                              height: '36px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              cursor: 'pointer',
+                              color: 'white'
                             }}
                           >
-                            {member.name}
-                          </Typography>
-                          <Typography 
-                            variant="caption" 
-                            sx={{ color: '#64748b', fontSize: '0.7rem' }}
-                          >
-                            {member.designation}
-                          </Typography>
-                        </Box>
-                        <Chip 
-                          label={member.role.replace('_', ' ').toUpperCase()} 
-                          size="small"
-                          sx={{ 
-                            bgcolor: getRoleColor(member.role),
-                            color: 'white',
-                            fontWeight: 500,
-                            fontSize: '0.6rem',
-                            height: 18,
-                            minHeight: 'auto'
-                          }}
-                        />
-                      </Box>
-                      
-                      <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
-                        <Email sx={{ fontSize: 12, mr: 1, color: '#94a3b8' }} />
-                        <Typography 
-                          variant="caption" 
-                          sx={{ color: '#64748b', fontSize: '0.7rem' }}
-                        >
-                          {member.email}
-                        </Typography>
-                      </Box>
-                      
-                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                        <Badge sx={{ fontSize: 12, mr: 1, color: '#94a3b8' }} />
-                        <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.7rem' }}>
-                          {member.employeeId}
-                        </Typography>
-                      </Box>
-                    </CardContent>
-                  </Card>
-                ))}
-              </Stack>
-            </Box>
-          )}
-        </CardContent>
-      </Card>
-    </Container>
+                            <Icon icon="mdi:chart-line" width={18} />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </Table>
+              </div>
+            )}
+          </Card.Body>
+        </Card>
+      </div>
     </>
   );
 };

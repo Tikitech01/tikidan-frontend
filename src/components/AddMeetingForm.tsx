@@ -87,6 +87,32 @@ const AddMeetingForm: React.FC<AddMeetingFormProps> = ({
 
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [locationPermission, setLocationPermission] = useState<'granted' | 'denied' | 'pending' | null>(null);
+  const [showPermissionPrompt, setShowPermissionPrompt] = useState(false);
+
+  const requestLocationAccess = async () => {
+    if (!navigator.geolocation) {
+      alert('Geolocation is not supported by your browser');
+      return false;
+    }
+
+    return new Promise<boolean>((resolve) => {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          console.log('Location access granted:', position.coords);
+          setLocationPermission('granted');
+          setShowPermissionPrompt(false);
+          resolve(true);
+        },
+        (error) => {
+          console.error('Location access denied:', error);
+          setLocationPermission('denied');
+          alert('Location access is required to add a meeting. Please enable location permissions in your browser settings.');
+          resolve(false);
+        }
+      );
+    });
+  };
 
   const handleInputChange = (field: keyof MeetingFormData) => (
     event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -137,6 +163,15 @@ const AddMeetingForm: React.FC<AddMeetingFormProps> = ({
       return;
     }
 
+    // Check if location permission is already granted
+    if (locationPermission !== 'granted') {
+      setShowPermissionPrompt(true);
+      const hasPermission = await requestLocationAccess();
+      if (!hasPermission) {
+        return;
+      }
+    }
+
     setIsSubmitting(true);
     
     try {
@@ -170,6 +205,69 @@ const AddMeetingForm: React.FC<AddMeetingFormProps> = ({
 
   return (
     <Box component="form" onSubmit={handleSubmit} sx={{ p: 3 }}>
+      {/* Location Permission Prompt Dialog */}
+      {showPermissionPrompt && locationPermission !== 'granted' && (
+        <Paper elevation={3} sx={{ 
+          p: 3, 
+          mb: 3, 
+          backgroundColor: '#fff3cd', 
+          border: '1px solid #ffc107',
+          borderRadius: 2
+        }}>
+          <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
+            <Box sx={{ fontSize: 24 }}>📍</Box>
+            <Box sx={{ flex: 1 }}>
+              <Typography variant="h6" sx={{ fontWeight: 600, mb: 1, color: '#856404' }}>
+                Location Access Required
+              </Typography>
+              <Typography variant="body2" sx={{ color: '#856404', mb: 2 }}>
+                To track your meeting locations and provide better analytics, we need access to your device's location. 
+                This helps the admin monitor field activities and generate location-based reports.
+              </Typography>
+              <Box sx={{ display: 'flex', gap: 2 }}>
+                <Button
+                  variant="contained"
+                  onClick={requestLocationAccess}
+                  sx={{ 
+                    backgroundColor: '#28a745',
+                    '&:hover': { backgroundColor: '#218838' }
+                  }}
+                >
+                  Allow Location Access
+                </Button>
+                <Button
+                  variant="outlined"
+                  onClick={() => setShowPermissionPrompt(false)}
+                  sx={{ color: '#856404', borderColor: '#856404' }}
+                >
+                  Not Now
+                </Button>
+              </Box>
+              {locationPermission === 'denied' && (
+                <Typography variant="caption" sx={{ color: 'error.main', mt: 1, display: 'block' }}>
+                  ❌ Location access was denied. You need to enable location permissions in your browser settings to add meetings.
+                </Typography>
+              )}
+            </Box>
+          </Box>
+        </Paper>
+      )}
+
+      {/* Show warning if location permission is denied */}
+      {locationPermission === 'denied' && (
+        <Paper elevation={2} sx={{ 
+          p: 2, 
+          mb: 3, 
+          backgroundColor: '#f8d7da', 
+          border: '1px solid #f5c6cb',
+          borderRadius: 1
+        }}>
+          <Typography variant="body2" sx={{ color: '#721c24' }}>
+            ⚠️ Location access is required. Please enable location permissions in your browser to proceed.
+          </Typography>
+        </Paper>
+      )}
+
       <Typography variant="h6" sx={{ mb: 3, fontWeight: 600 }}>
         {meetingId ? 'Edit Meeting' : 'Schedule New Meeting'}
       </Typography>
