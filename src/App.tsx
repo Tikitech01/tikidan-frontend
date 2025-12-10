@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import VerticalLayout from './components/layout/VerticalLayout';
 import Login from './pages/Login';
+import Dashboard from './pages/Dashboard';
 import Reports from './pages/Reports';
 import Team from './pages/Team';
 import Projects from './pages/Projects';
@@ -74,6 +75,10 @@ const ReportsRoute = () => {
   return <Reports />;
 };
 
+const DashboardRoute = () => {
+  return <Dashboard />;
+};
+
 function App() {
   return (
     <Router>
@@ -91,7 +96,7 @@ function App() {
                 <Routes>
                   {/* Main Menu - Role-based routing */}
                   <Route path="/reports" element={<ReportsRoute />} />
-                  <Route path="/dashboard" element={<Reports />} />
+                  <Route path="/dashboard" element={<DashboardRoute />} />
                   
                   {/* Main Menu Routes with Permissions */}
                   <Route 

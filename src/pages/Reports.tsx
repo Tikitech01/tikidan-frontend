@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, Row, Col, Form, Button, Tab, Tabs, Table, InputGroup, Spinner } from 'react-bootstrap';
 import { Icon } from '@iconify/react';
 import { getApiUrl } from '../services/api';
+import MeetingLocationsMap from '../components/MeetingLocationsMap';
 
 interface DashboardMetrics {
   totalMeetings: number;
@@ -53,41 +54,45 @@ const Reports: React.FC = () => {
     totalQuotations: 0,
     pendingQuotations: 0
   });
-
+  const [metricsLoading, setMetricsLoading] = useState(true);
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
   const [employeeMeetings, setEmployeeMeetings] = useState<Meeting[]>([]);
+  const [allMeetings, setAllMeetings] = useState<Meeting[]>([]);
   const [selectedEmployeeName, setSelectedEmployeeName] = useState<string>('');
   const [showMeetingsModal, setShowMeetingsModal] = useState(false);
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
-  const [loading, setLoading] = useState(false);
   const [teamLoading, setTeamLoading] = useState(false);
   const [meetingsLoading, setMeetingsLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortField, setSortField] = useState<keyof TeamMember>('name');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 
-  const fetchDashboardData = async () => {
+  const fetchDashboardMetrics = async () => {
     try {
-      setLoading(true);
+      setMetricsLoading(true);
       const token = localStorage.getItem('token');
-      const params = new URLSearchParams();
-      
-      if (startDate) params.append('startDate', startDate);
-      if (endDate) params.append('endDate', endDate);
-
-      const metricsRes = await fetch(`${getApiUrl()}/reports/dashboard/metrics?${params}`, {
-        headers: { 'Authorization': `Bearer ${token}` }
+      const response = await fetch(`${getApiUrl()}/reports/dashboard/metrics`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
       });
 
-      if (metricsRes.ok) {
-        const data = await metricsRes.json();
-        setMetrics(data.data);
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Metrics API Response:', data);
+        if (data.success && data.data) {
+          setMetrics(data.data);
+        } else {
+          console.warn('Unexpected response format:', data);
+        }
+      } else {
+        console.error('API Error:', response.status, response.statusText);
+        const errorData = await response.text();
+        console.error('Error details:', errorData);
       }
     } catch (error) {
-      console.error('Error fetching dashboard data:', error);
+      console.error('Error fetching metrics:', error);
     } finally {
-      setLoading(false);
+      setMetricsLoading(false);
     }
   };
 
@@ -134,12 +139,8 @@ const Reports: React.FC = () => {
     try {
       setMeetingsLoading(true);
       const token = localStorage.getItem('token');
-      const params = new URLSearchParams();
-      
-      if (startDate) params.append('startDate', startDate);
-      if (endDate) params.append('endDate', endDate);
 
-      const response = await fetch(`${getApiUrl()}/reports/employee-meetings/${employeeId}?${params}`, {
+      const response = await fetch(`${getApiUrl()}/reports/employee-meetings/${employeeId}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -158,14 +159,35 @@ const Reports: React.FC = () => {
     }
   };
 
-  useEffect(() => {
-    fetchDashboardData();
-    fetchTeamMembers();
-  }, []);
+  const fetchAllMeetingsWithGPS = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${getApiUrl()}/reports/map/all-meetings`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
 
-  const handleDateFilter = () => {
-    fetchDashboardData();
+      if (response.ok) {
+        const data = await response.json();
+        console.log('All meetings from API:', data.data);
+        // Filter to only meetings with locations
+        const meetingsWithLocations = (data.data || []).filter((m: Meeting) => m.location && m.location._id);
+        console.log('Meetings with locations:', meetingsWithLocations);
+        setAllMeetings(meetingsWithLocations);
+      } else {
+        console.error('API response not ok:', response.status);
+      }
+    } catch (error) {
+      console.error('Error fetching meetings with GPS:', error);
+    }
   };
+
+  useEffect(() => {
+    fetchDashboardMetrics();
+    fetchTeamMembers();
+    fetchAllMeetingsWithGPS();
+  }, []);
 
   const handleSort = (field: keyof TeamMember) => {
     if (sortField === field) {
@@ -191,174 +213,90 @@ const Reports: React.FC = () => {
       return 0;
     });
 
-  const stats = [
-    {
-      title: 'Total Meetings',
-      value: metrics.totalMeetings,
-      icon: 'mdi:calendar-multiple',
-      color: '#188ae2',
-    },
-    {
-      title: 'Clients',
-      value: metrics.totalClients,
-      icon: 'mdi:account-tie',
-      color: '#31ce77',
-    },
-    {
-      title: 'Repeat Visit',
-      value: metrics.repeatVisits,
-      icon: 'mdi:account-reload',
-      color: '#fbcc5c',
-    },
-    {
-      title: 'Total Quotation',
-      value: metrics.totalQuotations,
-      icon: 'mdi:file-document',
-      color: '#6b5eae',
-    },
-    {
-      title: 'Pending Quotation',
-      value: metrics.pendingQuotations,
-      icon: 'mdi:clock-outline',
-      color: '#f34943',
-    },
-  ];
-
-  const handleDownload = () => {
-    const reportData = {
-      metrics,
-      teamMembers: filteredAndSortedMembers,
-      dateRange: { startDate, endDate },
-      generatedAt: new Date().toISOString()
-    };
-
-    const csvContent = generateCSV(reportData);
-    const element = document.createElement('a');
-    element.setAttribute('href', 'data:text/csv;charset=utf-8,' + encodeURIComponent(csvContent));
-    element.setAttribute('download', `report_${new Date().toISOString().split('T')[0]}.csv`);
-    element.style.display = 'none';
-    document.body.appendChild(element);
-    element.click();
-    document.body.removeChild(element);
-  };
-
-  const generateCSV = (data: any) => {
-    let csv = 'Dashboard Report\n';
-    csv += `Generated: ${new Date().toLocaleString()}\n`;
-    csv += `Date Range: ${data.dateRange.startDate || 'All'} to ${data.dateRange.endDate || 'All'}\n\n`;
-    
-    csv += 'METRICS\n';
-    csv += `Total Meetings,${data.metrics.totalMeetings}\n`;
-    csv += `Total Clients,${data.metrics.totalClients}\n`;
-    csv += `Repeat Visits,${data.metrics.repeatVisits}\n`;
-    csv += `Total Quotations,${data.metrics.totalQuotations}\n`;
-    csv += `Pending Quotations,${data.metrics.pendingQuotations}\n\n`;
-    
-    csv += 'MEETING LOCATIONS\n';
-    csv += 'Location,Total Meetings,Clients Visited\n';
-    data.meetingLocations.forEach((loc: any) => {
-      csv += `"${loc.location?.name || 'Unknown'}",${loc.totalMeetings || loc.count || 0},${loc.clientsVisited || 0}\n`;
-    });
-
-    csv += '\nSALES PERSON PERFORMANCE\n';
-    csv += 'Name,Designation,Meetings,Average\n';
-    data.teamMembers.forEach((member: any) => {
-      csv += `"${member.name}","${member.designation}",${member.meetings},${member.average}\n`;
-    });
-
-    return csv;
-  };
-
   return (
     <>
-      {/* Full Width Reports Management Bar */}
-      <div className="employee-management-bar">
-        <div className="employee-management-content">
-          <h1 className="employee-management-title">REPORTS</h1>
+      {/* Metrics Header - Similar to the design shown */}
+      <div style={{ 
+        backgroundColor: '#fff', // More solid white for consistency
+        boxShadow: '0 2px 8px rgba(0,0,0,0.04)', // subtle shadow for separation
+        padding: '20px', 
+        borderRadius: '8px',
+        marginBottom: '24px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        flexWrap: 'wrap',
+        gap: '20px'
+      }}>
+        <div style={{ display: 'flex', gap: '40px', alignItems: 'center' }}>
+          {[
+            {
+              title: 'Total Meetings',
+              value: metrics.totalMeetings
+            },
+            {
+              title: 'Total Clients',
+              value: metrics.totalClients
+            },
+            {
+              title: 'Repeat Visits',
+              value: metrics.repeatVisits
+            },
+            {
+              title: 'Pending Quotations',
+              value: metrics.pendingQuotations,
+              color: '#ef4444'
+            }
+          ].map((stat, index) => (
+            <div key={index} style={{ textAlign: 'center' }}>
+              <div style={{ 
+                fontSize: '24px', 
+                fontWeight: 700, 
+                color: stat.color || '#333',
+                marginBottom: '4px'
+              }}>
+                {metricsLoading ? '-' : (stat.value || 0)}
+              </div>
+              <div style={{ 
+                fontSize: '12px', 
+                color: '#999',
+                whiteSpace: 'nowrap'
+              }}>
+                {stat.title}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Date range and user icon on the right */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '8px',
+            fontSize: '13px',
+            color: '#666'
+          }}>
+            <Icon icon="mdi:calendar" width="18" />
+            <span>Date Range</span>
+          </div>
+          <div style={{
+            width: '36px',
+            height: '36px',
+            borderRadius: '50%',
+            backgroundColor: '#e5e7eb',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}>
+            <Icon icon="mdi:account-circle" width="20" color="#999" />
+          </div>
         </div>
       </div>
 
-      {/* Statistics Cards */}
-      <Row className="g-3 mb-4">
-        {stats.map((stat, index) => (
-          <Col key={index} lg={2} md={4} sm={6}>
-            <Card className="border-0 shadow-sm h-100" style={{ borderLeft: `4px solid ${stat.color}` }}>
-              <Card.Body className="text-center">
-                <Icon 
-                  icon={stat.icon} 
-                  width="32" 
-                  height="32" 
-                  style={{ color: stat.color }}
-                  className="mb-2"
-                />
-                <p className="text-muted small mb-2">{stat.title}</p>
-                <h3 className="mb-0" style={{ color: stat.color }}>
-                  {loading ? '-' : stat.value}
-                </h3>
-              </Card.Body>
-            </Card>
-          </Col>
-        ))}
-      </Row>
-
-      {/* Filter Section */}
-      <Row className="g-3 mb-4">
-        <Col>
-          <Card className="border-0 shadow-sm">
-            <Card.Body>
-              <Row className="align-items-end">
-                <Col lg={3} md={4} sm={6}>
-                  <Form.Group>
-                    <Form.Label className="text-muted small fw-bold">Start Date</Form.Label>
-                    <Form.Control
-                      type="date"
-                      value={startDate}
-                      onChange={(e) => setStartDate(e.target.value)}
-                      className="form-control-sm"
-                    />
-                  </Form.Group>
-                </Col>
-                <Col lg={3} md={4} sm={6}>
-                  <Form.Group>
-                    <Form.Label className="text-muted small fw-bold">End Date</Form.Label>
-                    <Form.Control
-                      type="date"
-                      value={endDate}
-                      onChange={(e) => setEndDate(e.target.value)}
-                      className="form-control-sm"
-                    />
-                  </Form.Group>
-                </Col>
-                <Col lg={2} md={4} sm={12} className="d-flex gap-2">
-                  <Button 
-                    variant="primary" 
-                    onClick={handleDateFilter}
-                    className="d-flex align-items-center"
-                    size="sm"
-                    disabled={loading}
-                  >
-                    <Icon icon="mdi:filter" className="me-2" />
-                    Filter
-                  </Button>
-                  <Button 
-                    variant="outline-secondary" 
-                    onClick={handleDownload}
-                    className="d-flex align-items-center"
-                    size="sm"
-                  >
-                    <Icon icon="mdi:download" className="me-2" />
-                    Download
-                  </Button>
-                </Col>
-              </Row>
-            </Card.Body>
-          </Card>
-        </Col>
-      </Row>
-
       {/* Tabs for different views */}
       <Row className="g-3">
-        <Col lg={9}>
+        <Col lg={4}>
           <Card className="border-0 shadow-sm">
             <Card.Body>
               <Tabs defaultActiveKey="activity" className="mb-3">
@@ -367,12 +305,22 @@ const Reports: React.FC = () => {
                     <p className="text-muted">No Activity Found</p>
                   </div>
                 </Tab>
-                <Tab eventKey="calendar" title="Calendar">
-                  <div className="mt-3">
-                    <p className="text-muted">Calendar view coming soon</p>
-                  </div>
-                </Tab>
               </Tabs>
+            </Card.Body>
+          </Card>
+        </Col>
+
+        {/* Meeting Locations Card with Map */}
+        <Col lg={8}>
+          <Card className="border-0 shadow-sm">
+            <Card.Header className="bg-light border-bottom">
+              <h6 className="mb-0">
+                <Icon icon="mdi:map-marker" width="18" style={{ marginRight: '8px' }} />
+                Meeting Locations Map
+              </h6>
+            </Card.Header>
+            <Card.Body style={{ padding: '12px' }}>
+              <MeetingLocationsMap meetings={allMeetings} />
             </Card.Body>
           </Card>
         </Col>
