@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { MapContainer, TileLayer, Popup, Polyline } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet';
 import L from 'leaflet';
 
 interface LocationPoint {
@@ -86,9 +86,8 @@ const MovementTrackMap: React.FC<MovementTrackMapProps> = ({ locations }) => {
         const icon = isStart ? startIcon : isEnd ? endIcon : middleIcon;
 
         return (
-          <div key={location._id}>
-            {/* Marker rendered via Popup instead */}
-            <Popup position={[location.latitude, location.longitude]}>
+          <Marker key={location._id} position={[location.latitude, location.longitude]} icon={icon}>
+            <Popup>
               <div style={{ fontSize: '12px' }}>
                 <strong>
                   {isStart ? 'Start' : isEnd ? 'End' : `Point ${index + 1}`}
@@ -113,7 +112,7 @@ const MovementTrackMap: React.FC<MovementTrackMapProps> = ({ locations }) => {
                 )}
               </div>
             </Popup>
-          </div>
+          </Marker>
         );
       })}
     </MapContainer>
