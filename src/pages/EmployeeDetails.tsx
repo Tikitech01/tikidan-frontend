@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Card, Row, Col, Spinner, Button, Nav } from 'react-bootstrap';
+import { Card, Row, Col, Spinner, Button } from 'react-bootstrap';
 import { Icon } from '@iconify/react';
 import MeetingLocationsMap from '../components/MeetingLocationsMap';
+import MovementTrackMap from '../components/MovementTrackMap';
+import LiveLocationMap from '../components/LiveLocationMap';
 import { getApiUrl } from '../services/api';
 
 interface EmployeeDetailsData {
@@ -13,11 +15,45 @@ interface EmployeeDetailsData {
   meetings: Array<any>;
 }
 
+interface LocationPoint {
+  _id: string;
+  latitude: number;
+  longitude: number;
+  accuracy?: number;
+  timestamp: string;
+  distanceFromPrevious: number;
+  timeFromPrevious: number;
+}
+
+interface MovementData {
+  locations: LocationPoint[];
+  totalPoints: number;
+  totalDistance: string;
+  totalTime: number;
+  date: string;
+}
+
+interface LiveLocationData {
+  location: {
+    latitude: number;
+    longitude: number;
+    accuracy: number;
+    timestamp: string;
+  } | null;
+  status: 'online' | 'idle' | 'offline' | 'no_data';
+  timeSinceUpdate: number;
+  statusMessage: string;
+}
+
 const EmployeeDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<EmployeeDetailsData | null>(null);
+  const [movementData, setMovementData] = useState<MovementData | null>(null);
+  const [movementLoading, setMovementLoading] = useState(false);
+  const [liveLocation, setLiveLocation] = useState<LiveLocationData | null>(null);
+  const [liveLocationLoading, setLiveLocationLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [activeMapTab, setActiveMapTab] = useState<'meetings' | 'movement' | 'live'>('meetings');
 
@@ -59,6 +95,60 @@ const EmployeeDetails: React.FC = () => {
 
   const handleClose = () => {
     navigate(-1);
+  };
+
+  const fetchMovementData = async () => {
+    try {
+      setMovementLoading(true);
+      const token = localStorage.getItem('token');
+      
+      const response = await fetch(`${getApiUrl()}/reports/employee/${id}/movement`, {
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch movement data');
+      }
+
+      const result = await response.json();
+      if (result.success && result.data) {
+        setMovementData(result.data);
+      }
+    } catch (err) {
+      console.error('Error fetching movement data:', err);
+    } finally {
+      setMovementLoading(false);
+    }
+  };
+
+  const fetchLiveLocation = async () => {
+    try {
+      setLiveLocationLoading(true);
+      const token = localStorage.getItem('token');
+      
+      const response = await fetch(`${getApiUrl()}/reports/employee/${id}/live-location`, {
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch live location');
+      }
+
+      const result = await response.json();
+      if (result.success && result.data) {
+        setLiveLocation(result.data);
+      }
+    } catch (err) {
+      console.error('Error fetching live location:', err);
+    } finally {
+      setLiveLocationLoading(false);
+    }
   };
 
   if (loading) {
@@ -375,35 +465,109 @@ const EmployeeDetails: React.FC = () => {
                   )}
 
                   {activeMapTab === 'movement' && (
-                    <div style={{
-                      textAlign: 'center',
-                      padding: '40px 20px',
-                      color: '#999',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      height: '100%'
-                    }}>
-                      <Icon icon="mdi:route" width="48" style={{ marginBottom: '12px' }} />
-                      <p style={{ margin: 0, fontSize: '14px', fontWeight: 500 }}>Movement Track functionality coming soon</p>
-                    </div>
+                    <>
+                      {movementLoading ? (
+                        <div style={{
+                          textAlign: 'center',
+                          padding: '40px 20px',
+                          color: '#999',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          height: '100%'
+                        }}>
+                          <Spinner animation="border" size="sm" style={{ marginBottom: '12px' }} />
+                          <p style={{ margin: 0, fontSize: '14px', fontWeight: 500 }}>Loading movement data...</p>
+                        </div>
+                      ) : movementData && movementData.locations.length > 0 ? (
+                        <MovementTrackMap locations={movementData.locations} />
+                      ) : (
+                        <div style={{
+                          textAlign: 'center',
+                          padding: '40px 20px',
+                          color: '#999',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          height: '100%'
+                        }}>
+                          <Icon icon="mdi:route" width="48" style={{ marginBottom: '12px' }} />
+                          <p style={{ margin: '0 0 12px 0', fontSize: '14px', fontWeight: 500 }}>No movement tracking data</p>
+                          {!movementData && (
+                            <button
+                              onClick={fetchMovementData}
+                              style={{
+                                backgroundColor: '#2196F3',
+                                color: 'white',
+                                border: 'none',
+                                padding: '8px 16px',
+                                borderRadius: '4px',
+                                fontSize: '12px',
+                                cursor: 'pointer',
+                                fontWeight: 600
+                              }}
+                            >
+                              Load Movement Data
+                            </button>
+                          )}
+                        </div>
+                      )}
+                    </>
                   )}
 
                   {activeMapTab === 'live' && (
-                    <div style={{
-                      textAlign: 'center',
-                      padding: '40px 20px',
-                      color: '#999',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      height: '100%'
-                    }}>
-                      <Icon icon="mdi:crosshairs-gps" width="48" style={{ marginBottom: '12px' }} />
-                      <p style={{ margin: 0, fontSize: '14px', fontWeight: 500 }}>Live Location functionality coming soon</p>
-                    </div>
+                    <>
+                      {liveLocationLoading ? (
+                        <div style={{
+                          textAlign: 'center',
+                          padding: '40px 20px',
+                          color: '#999',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          height: '100%'
+                        }}>
+                          <Spinner animation="border" size="sm" style={{ marginBottom: '12px' }} />
+                          <p style={{ margin: 0, fontSize: '14px', fontWeight: 500 }}>Loading live location...</p>
+                        </div>
+                      ) : liveLocation && liveLocation.location ? (
+                        <LiveLocationMap locations={liveLocation} />
+                      ) : (
+                        <div style={{
+                          textAlign: 'center',
+                          padding: '40px 20px',
+                          color: '#999',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          height: '100%'
+                        }}>
+                          <Icon icon="mdi:crosshairs-gps" width="48" style={{ marginBottom: '12px' }} />
+                          <p style={{ margin: '0 0 12px 0', fontSize: '14px', fontWeight: 500 }}>No live location data</p>
+                          {!liveLocation && (
+                            <button
+                              onClick={fetchLiveLocation}
+                              style={{
+                                backgroundColor: '#ff6b6b',
+                                color: 'white',
+                                border: 'none',
+                                padding: '8px 16px',
+                                borderRadius: '4px',
+                                fontSize: '12px',
+                                cursor: 'pointer',
+                                fontWeight: 600
+                              }}
+                            >
+                              Load Live Location
+                            </button>
+                          )}
+                        </div>
+                      )}
+                    </>
                   )}
                 </div>
               </div>

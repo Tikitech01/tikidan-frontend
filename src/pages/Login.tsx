@@ -39,12 +39,42 @@ const Login: React.FC = () => {
     setLoading(true);
 
     try {
+      // Request user's location
+      let locationData = {};
+      
+      if (navigator.geolocation) {
+        try {
+          const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(resolve, reject, {
+              enableHighAccuracy: true,
+              timeout: 10000,
+              maximumAge: 0
+            });
+          });
+          
+          locationData = {
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+            accuracy: position.coords.accuracy
+          };
+          
+          console.log('📍 Location captured:', locationData);
+        } catch (geoError) {
+          console.warn('Location not available:', geoError);
+          // Continue with login even if location is not available
+        }
+      }
+
       const response = await fetch(`${getApiUrl()}/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ 
+          email, 
+          password,
+          ...locationData // Include location if available
+        }),
       });
 
       const data = await response.json();
@@ -74,6 +104,29 @@ const Login: React.FC = () => {
     setLoading(true);
 
     try {
+      // Request user's location
+      let locationData = {};
+      
+      if (navigator.geolocation) {
+        try {
+          const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(resolve, reject, {
+              enableHighAccuracy: true,
+              timeout: 10000,
+              maximumAge: 0
+            });
+          });
+          
+          locationData = {
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+            accuracy: position.coords.accuracy
+          };
+        } catch (geoError) {
+          console.warn('Location not available:', geoError);
+        }
+      }
+
       const response = await fetch(`${getApiUrl()}/auth/login`, {
         method: 'POST',
         headers: {
@@ -81,7 +134,8 @@ const Login: React.FC = () => {
         },
         body: JSON.stringify({
           email: 'admin@tikidan.com',
-          password: 'admin123'
+          password: 'admin123',
+          ...locationData
         }),
       });
 
