@@ -507,8 +507,9 @@ const Reports: React.FC = () => {
                           </td>
                           <td style={{ textAlign: 'center' }}>
                             <button
+                              onClick={() => window.location.href = `/employee/${member.id}`}
                               style={{
-                                background: '#4CAF50',
+                                background: 'none',
                                 border: 'none',
                                 borderRadius: '50%',
                                 width: '36px',
@@ -517,10 +518,11 @@ const Reports: React.FC = () => {
                                 alignItems: 'center',
                                 justifyContent: 'center',
                                 cursor: 'pointer',
-                                color: 'white'
+                                color: '#22c55e'
                               }}
+                              title="View Professional Info"
                             >
-                              <Icon icon="mdi:chart-line" width={18} />
+                              <Icon icon="mdi:chat" width={20} />
                             </button>
                           </td>
                         </tr>

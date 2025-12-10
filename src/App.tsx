@@ -9,6 +9,7 @@ import Clients from './pages/Clients';
 import Employees from './pages/Employees';
 import Profile from './pages/Profile';
 import Meetings from './pages/Meetings';
+import EmployeeDetails from './pages/EmployeeDetails';
 import PlaceholderPage from './pages/PlaceholderPage';
 import './App.css';
 
@@ -302,6 +303,10 @@ function App() {
                         requiredPermission="profile" 
                       />
                     } 
+                  />
+                  <Route 
+                    path="/employee/:id" 
+                    element={<EmployeeDetails />}
                   />
                   <Route 
                     path="/my-leave" 
