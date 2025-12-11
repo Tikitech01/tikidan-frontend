@@ -34,15 +34,21 @@ interface MovementData {
 }
 
 interface LiveLocationData {
-  location: {
+  onlineMarker?: {
     latitude: number;
     longitude: number;
     accuracy: number;
     timestamp: string;
+    type?: 'online' | 'offline';
   } | null;
-  status: 'online' | 'idle' | 'offline' | 'no_data';
-  timeSinceUpdate: number;
-  statusMessage: string;
+  offlineMarkers?: Array<{
+    latitude: number;
+    longitude: number;
+    accuracy: number;
+    timestamp: string;
+    type?: 'online' | 'offline';
+  }>;
+  status?: 'online' | 'offline';
 }
 
 const EmployeeDetails: React.FC = () => {
@@ -129,7 +135,7 @@ const EmployeeDetails: React.FC = () => {
       setLiveLocationLoading(true);
       const token = localStorage.getItem('token');
       
-      const response = await fetch(`${getApiUrl()}/reports/employee/${id}/live-location`, {
+      const response = await fetch(`${getApiUrl()}/reports/employee/${id}/location-history`, {
         headers: { 
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -533,7 +539,7 @@ const EmployeeDetails: React.FC = () => {
                           <Spinner animation="border" size="sm" style={{ marginBottom: '12px' }} />
                           <p style={{ margin: 0, fontSize: '14px', fontWeight: 500 }}>Loading live location...</p>
                         </div>
-                      ) : liveLocation && liveLocation.location ? (
+                      ) : liveLocation && liveLocation.onlineMarker ? (
                         <LiveLocationMap locations={liveLocation} />
                       ) : (
                         <div style={{

@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Container, Nav, Navbar } from 'react-bootstrap';
 import { Icon } from '@iconify/react';
+import { getApiUrl } from '../../services/api';
+import { stopLocationTracking } from '../../services/locationTracker';
 
 const TopNavigationBar: React.FC = () => {
   const [showNotifications, setShowNotifications] = useState(false);
@@ -51,22 +53,71 @@ const TopNavigationBar: React.FC = () => {
   };
 
   // Handle logout
-  const handleLogout = () => {
+  const handleLogout = async () => {
     try {
-      // Clear authentication data
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
+      const token = localStorage.getItem('token');
+      console.log('🔴 Logout initiated, capturing location...');
       
-      // Logout success
-      console.log('Logged out successfully');
-      
-      // Navigate to login page
-      navigate('/login');
+      // Capture location at logout if available
+      if (navigator.geolocation && token) {
+        navigator.geolocation.getCurrentPosition(
+          async (position) => {
+            const { latitude, longitude, accuracy } = position.coords;
+            console.log(`📍 Logout location captured: ${latitude}, ${longitude}`);
+            
+            try {
+              const response = await fetch(`${getApiUrl()}/auth/logout`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                  latitude,
+                  longitude,
+                  accuracy
+                })
+              });
+              
+              if (response.ok) {
+                console.log('✅ Logout location saved to backend');
+              } else {
+                console.warn('⚠️ Failed to save logout location:', response.statusText);
+              }
+            } catch (error) {
+              console.warn('Failed to log logout location:', error);
+            } finally {
+              completeLogout();
+            }
+          },
+          (error) => {
+            console.warn('🚫 Geolocation error on logout:', error.message);
+            // If geolocation fails, still proceed with logout
+            completeLogout();
+          }
+        );
+      } else {
+        console.log('⚠️ Geolocation or token not available for logout location');
+        completeLogout();
+      }
     } catch (error) {
       console.error('Logout error:', error);
-      // Even if there's an error, still redirect to login
-      navigate('/login');
+      completeLogout();
     }
+  };
+
+  const completeLogout = () => {
+    // Stop location tracking
+    stopLocationTracking();
+    
+    // Clear authentication data
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    
+    console.log('Logged out successfully');
+    
+    // Navigate to login page
+    navigate('/login');
   };
 
   // Handle search

@@ -1,4 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { useEffect } from 'react';
 import VerticalLayout from './components/layout/VerticalLayout';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
@@ -11,6 +12,7 @@ import Profile from './pages/Profile';
 import Meetings from './pages/Meetings';
 import EmployeeDetails from './pages/EmployeeDetails';
 import PlaceholderPage from './pages/PlaceholderPage';
+import { startLocationTracking, stopLocationTracking } from './services/locationTracker';
 import './App.css';
 
 // Protected Route Component - Checks both authentication and permissions
@@ -81,6 +83,22 @@ const DashboardRoute = () => {
 };
 
 function App() {
+  // Start location tracking when app loads if user is logged in
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    
+    if (token) {
+      console.log('📍 Starting location tracking on app load');
+      startLocationTracking(token);
+    }
+    
+    // Cleanup: Stop tracking when app unmounts or user logs out
+    return () => {
+      stopLocationTracking();
+      console.log('🛑 Location tracking stopped on app unmount');
+    };
+  }, []);
+
   return (
     <Router>
       <Routes>
