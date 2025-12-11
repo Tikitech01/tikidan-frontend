@@ -42,6 +42,10 @@ const EmployeeDetails: React.FC = () => {
   const [liveLocationLoading, setLiveLocationLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [activeMapTab, setActiveMapTab] = useState<'meetings' | 'movement' | 'live'>('meetings');
+  const [selectedMeeting, setSelectedMeeting] = useState<any | null>(null);
+  const [showMeetingDetails, setShowMeetingDetails] = useState(false);
+  const [filterStartDate, setFilterStartDate] = useState<string>('');
+  const [filterEndDate, setFilterEndDate] = useState<string>('');
 
   useEffect(() => {
     const fetchData = async () => {
@@ -108,6 +112,28 @@ const EmployeeDetails: React.FC = () => {
     } finally {
       setLiveLocationLoading(false);
     }
+  };
+
+  // Filter meetings by date range
+  const getFilteredMeetings = () => {
+    if (!data?.meetings) return [];
+    
+    return data.meetings.filter(meeting => {
+      const meetingDate = new Date(meeting.date);
+      
+      if (filterStartDate) {
+        const startDate = new Date(filterStartDate);
+        if (meetingDate < startDate) return false;
+      }
+      
+      if (filterEndDate) {
+        const endDate = new Date(filterEndDate);
+        endDate.setHours(23, 59, 59, 999);
+        if (meetingDate > endDate) return false;
+      }
+      
+      return true;
+    });
   };
 
   if (loading) {
@@ -258,63 +284,75 @@ const EmployeeDetails: React.FC = () => {
         </div>
 
         {/* Content Section */}
-        <div style={{ padding: '32px' }}>
-          {/* Stats Row */}
-          <Row className="mb-4 g-3">
+        <div style={{ padding: '24px' }}>
+          {/* Stats Row - Compact */}
+          <Row className="mb-3 g-2">
             <Col md={4}>
               <div style={{
                 backgroundColor: '#f0f9ff',
-                borderLeft: '4px solid #4CAF50',
-                padding: '16px',
-                borderRadius: '8px',
-                textAlign: 'center'
+                borderLeft: '3px solid #4CAF50',
+                padding: '10px 12px',
+                borderRadius: '6px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px'
               }}>
-                <Icon icon="mdi:account-multiple" width="32" style={{ color: '#4CAF50', marginBottom: '8px', display: 'block' }} />
-                <h3 style={{ margin: 0, fontWeight: 700, color: '#333', fontSize: '24px' }}>
-                  {data.totalClients}
-                </h3>
-                <p style={{ margin: '6px 0 0 0', fontSize: '12px', color: '#666', fontWeight: 500 }}>
-                  Total Clients Created
-                </p>
+                <Icon icon="mdi:account-multiple" width="24" style={{ color: '#4CAF50', flexShrink: 0 }} />
+                <div>
+                  <h4 style={{ margin: 0, fontWeight: 700, color: '#333', fontSize: '18px' }}>
+                    {data.totalClients}
+                  </h4>
+                  <p style={{ margin: '2px 0 0 0', fontSize: '11px', color: '#666', fontWeight: 500 }}>
+                    Clients
+                  </p>
+                </div>
               </div>
             </Col>
             <Col md={4}>
               <div style={{
                 backgroundColor: '#eff6ff',
-                borderLeft: '4px solid #2196F3',
-                padding: '16px',
-                borderRadius: '8px',
-                textAlign: 'center'
+                borderLeft: '3px solid #2196F3',
+                padding: '10px 12px',
+                borderRadius: '6px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px'
               }}>
-                <Icon icon="mdi:calendar-check" width="32" style={{ color: '#2196F3', marginBottom: '8px', display: 'block' }} />
-                <h3 style={{ margin: 0, fontWeight: 700, color: '#333', fontSize: '24px' }}>
-                  {data.totalMeetings}
-                </h3>
-                <p style={{ margin: '6px 0 0 0', fontSize: '12px', color: '#666', fontWeight: 500 }}>
-                  Total Meetings Done
-                </p>
+                <Icon icon="mdi:calendar-check" width="24" style={{ color: '#2196F3', flexShrink: 0 }} />
+                <div>
+                  <h4 style={{ margin: 0, fontWeight: 700, color: '#333', fontSize: '18px' }}>
+                    {data.totalMeetings}
+                  </h4>
+                  <p style={{ margin: '2px 0 0 0', fontSize: '11px', color: '#666', fontWeight: 500 }}>
+                    Meetings
+                  </p>
+                </div>
               </div>
             </Col>
             <Col md={4}>
               <div style={{
                 backgroundColor: '#fef3f2',
-                borderLeft: '4px solid #ff6b6b',
-                padding: '16px',
-                borderRadius: '8px',
-                textAlign: 'center'
+                borderLeft: '3px solid #ff6b6b',
+                padding: '10px 12px',
+                borderRadius: '6px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px'
               }}>
-                <Icon icon="mdi:chart-line" width="32" style={{ color: '#ff6b6b', marginBottom: '8px', display: 'block' }} />
-                <h3 style={{ margin: 0, fontWeight: 700, color: '#333', fontSize: '24px' }}>
-                  {data.totalMeetings > 0 ? (data.totalClients / data.totalMeetings).toFixed(1) : '0'}
-                </h3>
-                <p style={{ margin: '6px 0 0 0', fontSize: '12px', color: '#666', fontWeight: 500 }}>
-                  Avg. Clients per Meeting
-                </p>
+                <Icon icon="mdi:chart-line" width="24" style={{ color: '#ff6b6b', flexShrink: 0 }} />
+                <div>
+                  <h4 style={{ margin: 0, fontWeight: 700, color: '#333', fontSize: '18px' }}>
+                    {data.totalMeetings > 0 ? (data.totalClients / data.totalMeetings).toFixed(1) : '0'}
+                  </h4>
+                  <p style={{ margin: '2px 0 0 0', fontSize: '11px', color: '#666', fontWeight: 500 }}>
+                    Avg/Meeting
+                  </p>
+                </div>
               </div>
             </Col>
           </Row>
 
-          <Row className="g-4" style={{ marginTop: '24px' }}>
+          <Row className="g-4" style={{ marginTop: '16px' }}>
             {/* Map Section - Left Side */}
             <Col lg={6}>
               <div>
@@ -403,8 +441,8 @@ const EmployeeDetails: React.FC = () => {
                 }}>
                   {activeMapTab === 'meetings' && (
                     <>
-                      {data.meetings && data.meetings.length > 0 ? (
-                        <MeetingLocationsMap meetings={data.meetings} />
+                      {getFilteredMeetings().length > 0 ? (
+                        <MeetingLocationsMap meetings={getFilteredMeetings()} />
                       ) : (
                         <div style={{
                           textAlign: 'center',
@@ -417,7 +455,9 @@ const EmployeeDetails: React.FC = () => {
                           height: '100%'
                         }}>
                           <Icon icon="mdi:map-search-outline" width="48" style={{ marginBottom: '12px' }} />
-                          <p style={{ margin: 0, fontSize: '14px', fontWeight: 500 }}>No meetings with location data</p>
+                          <p style={{ margin: 0, fontSize: '14px', fontWeight: 500 }}>
+                            {filterStartDate || filterEndDate ? 'No meetings in selected date range' : 'No meetings with location data'}
+                          </p>
                         </div>
                       )}
                     </>
@@ -426,7 +466,12 @@ const EmployeeDetails: React.FC = () => {
                   {activeMapTab === 'movement' && (
                     <>
                       {id ? (
-                        <MovementTrackingMap employeeId={id} date={new Date().toISOString().split('T')[0]} />
+                        <MovementTrackingMap 
+                          employeeId={id} 
+                          date={new Date().toISOString().split('T')[0]}
+                          startDate={filterStartDate}
+                          endDate={filterEndDate}
+                        />
                       ) : (
                         <div style={{
                           textAlign: 'center',
@@ -504,10 +549,71 @@ const EmployeeDetails: React.FC = () => {
             {/* Meetings List Section - Right Side */}
             <Col lg={6}>
               <div>
-                <h5 style={{ fontWeight: 700, color: '#333', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '16px' }}>
+                <h5 style={{ fontWeight: 700, color: '#333', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '16px' }}>
                   <Icon icon="mdi:format-list-bulleted" width="20" />
-                  Recent Meetings ({data.meetings?.length || 0})
+                  Recent Meetings ({getFilteredMeetings().length || 0})
                 </h5>
+
+                {/* Date Filter Section */}
+                <div style={{ marginBottom: '12px', padding: '8px 12px', backgroundColor: '#f9f9f9', borderRadius: '6px', border: '1px solid #e8e8e8' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', alignItems: 'end' }}>
+                    <div>
+                      <label style={{ fontSize: '10px', fontWeight: 600, color: '#666', textTransform: 'uppercase', display: 'block', marginBottom: '3px' }}>
+                        From
+                      </label>
+                      <input
+                        type="date"
+                        value={filterStartDate}
+                        onChange={(e) => setFilterStartDate(e.target.value)}
+                        style={{
+                          width: '100%',
+                          padding: '6px 8px',
+                          fontSize: '12px',
+                          border: '1px solid #ddd',
+                          borderRadius: '4px',
+                          boxSizing: 'border-box'
+                        }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ fontSize: '10px', fontWeight: 600, color: '#666', textTransform: 'uppercase', display: 'block', marginBottom: '3px' }}>
+                        To
+                      </label>
+                      <input
+                        type="date"
+                        value={filterEndDate}
+                        onChange={(e) => setFilterEndDate(e.target.value)}
+                        style={{
+                          width: '100%',
+                          padding: '6px 8px',
+                          fontSize: '12px',
+                          border: '1px solid #ddd',
+                          borderRadius: '4px',
+                          boxSizing: 'border-box'
+                        }}
+                      />
+                    </div>
+                    <button
+                      onClick={() => {
+                        setFilterStartDate('');
+                        setFilterEndDate('');
+                      }}
+                      style={{
+                        padding: '6px 8px',
+                        backgroundColor: '#f0f0f0',
+                        border: '1px solid #ddd',
+                        borderRadius: '4px',
+                        fontSize: '11px',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        color: '#666'
+                      }}
+                    >
+                      Clear
+                    </button>
+                  </div>
+                </div>
+
                 <div style={{
                   maxHeight: '400px',
                   overflow: 'auto',
@@ -515,7 +621,7 @@ const EmployeeDetails: React.FC = () => {
                   border: '1px solid #e0e0e0',
                   backgroundColor: '#fff'
                 }}>
-                  {data.meetings && data.meetings.length > 0 ? (
+                  {getFilteredMeetings().length > 0 ? (
                     <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                       <thead>
                         <tr style={{ backgroundColor: '#f5f5f5', borderBottom: '2px solid #e0e0e0', position: 'sticky', top: 0 }}>
@@ -528,10 +634,13 @@ const EmployeeDetails: React.FC = () => {
                           <th style={{ padding: '12px 16px', textAlign: 'left', fontWeight: 600, fontSize: '12px', color: '#666', textTransform: 'uppercase' }}>
                             Location
                           </th>
+                          <th style={{ padding: '12px 16px', textAlign: 'center', fontWeight: 600, fontSize: '12px', color: '#666', textTransform: 'uppercase' }}>
+                            Action
+                          </th>
                         </tr>
                       </thead>
                       <tbody>
-                        {data.meetings.slice(0, 15).map((meeting, idx) => (
+                        {getFilteredMeetings().slice(0, 15).map((meeting, idx) => (
                           <tr key={idx} style={{ borderBottom: '1px solid #f0f0f0' }}>
                             <td style={{ padding: '12px 16px', fontSize: '13px', color: '#333', whiteSpace: 'nowrap' }}>
                               {new Date(meeting.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: '2-digit' })}
@@ -541,6 +650,19 @@ const EmployeeDetails: React.FC = () => {
                             </td>
                             <td style={{ padding: '12px 16px', fontSize: '13px', color: '#666', maxWidth: '120px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                               {meeting.location?.name || 'No location'}
+                            </td>
+                            <td style={{ padding: '12px 16px', textAlign: 'center' }}>
+                              <Button
+                                size="sm"
+                                variant="primary"
+                                onClick={() => {
+                                  setSelectedMeeting(meeting);
+                                  setShowMeetingDetails(true);
+                                }}
+                                style={{ fontSize: '11px', padding: '4px 12px' }}
+                              >
+                                Details
+                              </Button>
                             </td>
                           </tr>
                         ))}
@@ -558,7 +680,9 @@ const EmployeeDetails: React.FC = () => {
                       justifyContent: 'center'
                     }}>
                       <Icon icon="mdi:list-box-outline" width="48" style={{ marginBottom: '12px' }} />
-                      <p style={{ margin: 0, fontSize: '14px', fontWeight: 500 }}>No meetings found</p>
+                      <p style={{ margin: 0, fontSize: '14px', fontWeight: 500 }}>
+                        {filterStartDate || filterEndDate ? 'No meetings in selected date range' : 'No meetings found'}
+                      </p>
                     </div>
                   )}
                 </div>
@@ -567,6 +691,221 @@ const EmployeeDetails: React.FC = () => {
           </Row>
         </div>
       </div>
+
+      {/* Meeting Details Modal */}
+      {showMeetingDetails && selectedMeeting && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0,0,0,0.5)',
+          zIndex: 1000,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '20px'
+        }}>
+          <Card style={{
+            width: '100%',
+            maxWidth: '650px',
+            maxHeight: '85vh',
+            overflowY: 'auto'
+          }}>
+            <Card.Header className="bg-primary text-white d-flex justify-content-between align-items-center">
+              <Card.Title className="mb-0">Meeting Details</Card.Title>
+              <Button
+                variant="close"
+                onClick={() => setShowMeetingDetails(false)}
+                style={{ filter: 'brightness(0) invert(1)' }}
+              />
+            </Card.Header>
+            <Card.Body>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+                {/* Title */}
+                <div style={{ gridColumn: '1 / -1' }}>
+                  <label style={{ fontSize: '11px', color: '#666', fontWeight: 'bold', textTransform: 'uppercase' }}>
+                    Meeting Title
+                  </label>
+                  <div style={{ fontSize: '14px', color: '#333', marginTop: '5px', fontWeight: 500 }}>
+                    {selectedMeeting.title || 'N/A'}
+                  </div>
+                </div>
+
+                {/* Date */}
+                <div>
+                  <label style={{ fontSize: '11px', color: '#666', fontWeight: 'bold', textTransform: 'uppercase' }}>
+                    Date
+                  </label>
+                  <div style={{ fontSize: '13px', color: '#333', marginTop: '5px' }}>
+                    {new Date(selectedMeeting.date).toLocaleDateString('en-IN', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric'
+                    })}
+                  </div>
+                </div>
+
+                {/* Time */}
+                <div>
+                  <label style={{ fontSize: '11px', color: '#666', fontWeight: 'bold', textTransform: 'uppercase' }}>
+                    Time
+                  </label>
+                  <div style={{ fontSize: '13px', color: '#333', marginTop: '5px' }}>
+                    {selectedMeeting.time || 'N/A'}
+                  </div>
+                </div>
+
+                {/* Duration */}
+                <div>
+                  <label style={{ fontSize: '11px', color: '#666', fontWeight: 'bold', textTransform: 'uppercase' }}>
+                    Duration
+                  </label>
+                  <div style={{ fontSize: '13px', color: '#333', marginTop: '5px' }}>
+                    {selectedMeeting.duration ? `${selectedMeeting.duration} mins` : 'N/A'}
+                  </div>
+                </div>
+
+                {/* Status */}
+                <div>
+                  <label style={{ fontSize: '11px', color: '#666', fontWeight: 'bold', textTransform: 'uppercase' }}>
+                    Status
+                  </label>
+                  <div style={{ fontSize: '13px', marginTop: '5px' }}>
+                    <span style={{
+                      padding: '4px 8px',
+                      borderRadius: '4px',
+                      backgroundColor: selectedMeeting.status === 'completed' ? '#d4edda' : selectedMeeting.status === 'cancelled' ? '#f8d7da' : '#cfe2ff',
+                      color: selectedMeeting.status === 'completed' ? '#155724' : selectedMeeting.status === 'cancelled' ? '#721c24' : '#084298',
+                      fontSize: '12px',
+                      textTransform: 'capitalize',
+                      fontWeight: 500
+                    }}>
+                      {selectedMeeting.status || 'N/A'}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Type */}
+                <div>
+                  <label style={{ fontSize: '11px', color: '#666', fontWeight: 'bold', textTransform: 'uppercase' }}>
+                    Type
+                  </label>
+                  <div style={{ fontSize: '13px', color: '#333', marginTop: '5px' }}>
+                    {selectedMeeting.type || 'N/A'}
+                  </div>
+                </div>
+
+                {/* Client */}
+                <div style={{ gridColumn: '1 / -1' }}>
+                  <label style={{ fontSize: '11px', color: '#666', fontWeight: 'bold', textTransform: 'uppercase' }}>
+                    Client Name
+                  </label>
+                  <div style={{ fontSize: '13px', color: '#333', marginTop: '5px' }}>
+                    {selectedMeeting.client?.clientName || 'N/A'}
+                  </div>
+                </div>
+
+                {/* Location */}
+                <div style={{ gridColumn: '1 / -1' }}>
+                  <label style={{ fontSize: '11px', color: '#666', fontWeight: 'bold', textTransform: 'uppercase' }}>
+                    Location
+                  </label>
+                  <div style={{ fontSize: '13px', color: '#333', marginTop: '5px' }}>
+                    <div style={{ fontWeight: 500 }}>{selectedMeeting.location?.name || 'N/A'}</div>
+                    {selectedMeeting.location?.address && (
+                      <div style={{ fontSize: '12px', color: '#666', marginTop: '3px' }}>
+                        {selectedMeeting.location.address}
+                      </div>
+                    )}
+                    {selectedMeeting.location?.city && (
+                      <div style={{ fontSize: '12px', color: '#666' }}>
+                        {selectedMeeting.location.city}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Description */}
+                {selectedMeeting.description && (
+                  <div style={{ gridColumn: '1 / -1' }}>
+                    <label style={{ fontSize: '11px', color: '#666', fontWeight: 'bold', textTransform: 'uppercase' }}>
+                      Description
+                    </label>
+                    <div style={{ fontSize: '13px', color: '#333', marginTop: '5px', backgroundColor: '#f8f9fa', padding: '8px', borderRadius: '4px', borderLeft: '3px solid #007bff' }}>
+                      {selectedMeeting.description}
+                    </div>
+                  </div>
+                )}
+
+                {/* GPS Coordinates */}
+                {selectedMeeting.gpsCoordinates && (
+                  <>
+                    <div>
+                      <label style={{ fontSize: '11px', color: '#666', fontWeight: 'bold', textTransform: 'uppercase' }}>
+                        Latitude
+                      </label>
+                      <div style={{ fontSize: '12px', color: '#333', marginTop: '5px', fontFamily: 'monospace' }}>
+                        {selectedMeeting.gpsCoordinates.latitude.toFixed(6)}
+                      </div>
+                    </div>
+
+                    <div>
+                      <label style={{ fontSize: '11px', color: '#666', fontWeight: 'bold', textTransform: 'uppercase' }}>
+                        Longitude
+                      </label>
+                      <div style={{ fontSize: '12px', color: '#333', marginTop: '5px', fontFamily: 'monospace' }}>
+                        {selectedMeeting.gpsCoordinates.longitude.toFixed(6)}
+                      </div>
+                    </div>
+
+                    <div>
+                      <label style={{ fontSize: '11px', color: '#666', fontWeight: 'bold', textTransform: 'uppercase' }}>
+                        Accuracy
+                      </label>
+                      <div style={{ fontSize: '12px', color: '#333', marginTop: '5px' }}>
+                        ±{selectedMeeting.gpsCoordinates.accuracy.toFixed(0)}m
+                      </div>
+                    </div>
+
+                    <div>
+                      <label style={{ fontSize: '11px', color: '#666', fontWeight: 'bold', textTransform: 'uppercase' }}>
+                        Captured At
+                      </label>
+                      <div style={{ fontSize: '12px', color: '#333', marginTop: '5px' }}>
+                        {new Date(selectedMeeting.gpsCoordinates.capturedAt).toLocaleString()}
+                      </div>
+                    </div>
+
+                    <div style={{ gridColumn: '1 / -1' }}>
+                      <Button
+                        variant="primary"
+                        size="sm"
+                        href={`https://www.google.com/maps/search/${selectedMeeting.gpsCoordinates.latitude},${selectedMeeting.gpsCoordinates.longitude}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ marginTop: '10px' }}
+                      >
+                        📍 Open in Google Maps
+                      </Button>
+                    </div>
+                  </>
+                )}
+              </div>
+            </Card.Body>
+            <Card.Footer className="bg-light d-flex justify-content-end gap-2">
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setShowMeetingDetails(false)}
+              >
+                Close
+              </Button>
+            </Card.Footer>
+          </Card>
+        </div>
+      )}
     </div>
   );
 };

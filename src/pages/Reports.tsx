@@ -60,6 +60,8 @@ const Reports: React.FC = () => {
   const [allMeetings, setAllMeetings] = useState<Meeting[]>([]);
   const [selectedEmployeeName, setSelectedEmployeeName] = useState<string>('');
   const [showMeetingsModal, setShowMeetingsModal] = useState(false);
+  const [selectedMeeting, setSelectedMeeting] = useState<Meeting | null>(null);
+  const [showMeetingDetailsModal, setShowMeetingDetailsModal] = useState(false);
   const [teamLoading, setTeamLoading] = useState(false);
   const [meetingsLoading, setMeetingsLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -602,6 +604,7 @@ const Reports: React.FC = () => {
                           <th style={{ fontSize: '12px' }}>Client</th>
                           <th style={{ fontSize: '12px' }}>Location</th>
                           <th style={{ fontSize: '12px' }}>GPS</th>
+                          <th style={{ fontSize: '12px', textAlign: 'center' }}>Action</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -639,6 +642,19 @@ const Reports: React.FC = () => {
                                 <span style={{ color: '#ccc' }}>-</span>
                               )}
                             </td>
+                            <td style={{ fontSize: '12px', textAlign: 'center' }}>
+                              <Button
+                                size="sm"
+                                variant="info"
+                                onClick={() => {
+                                  setSelectedMeeting(meeting);
+                                  setShowMeetingDetailsModal(true);
+                                }}
+                                style={{ fontSize: '11px', padding: '4px 8px' }}
+                              >
+                                Details
+                              </Button>
+                            </td>
                           </tr>
                         ))}
                       </tbody>
@@ -648,6 +664,168 @@ const Reports: React.FC = () => {
               </Card>
             </div>
           )}
+
+      {/* Meeting Details Modal */}
+      {showMeetingDetailsModal && selectedMeeting && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0,0,0,0.5)',
+          zIndex: 1001,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '20px'
+        }}>
+          <Card style={{
+            width: '100%',
+            maxWidth: '700px',
+            maxHeight: '85vh',
+            overflowY: 'auto'
+          }}>
+            <Card.Header className="bg-primary text-white d-flex justify-content-between align-items-center">
+              <Card.Title className="mb-0">Meeting Details</Card.Title>
+              <Button
+                variant="close"
+                onClick={() => setShowMeetingDetailsModal(false)}
+                style={{ filter: 'brightness(0) invert(1)' }}
+              />
+            </Card.Header>
+            <Card.Body>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+                {/* Title */}
+                <div style={{ gridColumn: '1 / -1' }}>
+                  <label style={{ fontSize: '11px', color: '#666', fontWeight: 'bold', textTransform: 'uppercase' }}>
+                    Meeting Title
+                  </label>
+                  <div style={{ fontSize: '14px', color: '#333', marginTop: '5px', fontWeight: 500 }}>
+                    {selectedMeeting.title}
+                  </div>
+                </div>
+
+                {/* Date & Time */}
+                <div>
+                  <label style={{ fontSize: '11px', color: '#666', fontWeight: 'bold', textTransform: 'uppercase' }}>
+                    Date
+                  </label>
+                  <div style={{ fontSize: '13px', color: '#333', marginTop: '5px' }}>
+                    {new Date(selectedMeeting.date).toLocaleDateString('en-IN', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric'
+                    })}
+                  </div>
+                </div>
+
+                <div>
+                  <label style={{ fontSize: '11px', color: '#666', fontWeight: 'bold', textTransform: 'uppercase' }}>
+                    Time
+                  </label>
+                  <div style={{ fontSize: '13px', color: '#333', marginTop: '5px' }}>
+                    {selectedMeeting.time}
+                  </div>
+                </div>
+
+                {/* Client */}
+                <div style={{ gridColumn: '1 / -1' }}>
+                  <label style={{ fontSize: '11px', color: '#666', fontWeight: 'bold', textTransform: 'uppercase' }}>
+                    Client Name
+                  </label>
+                  <div style={{ fontSize: '13px', color: '#333', marginTop: '5px' }}>
+                    {selectedMeeting.client?.clientName || 'N/A'}
+                  </div>
+                </div>
+
+                {/* Location */}
+                <div style={{ gridColumn: '1 / -1' }}>
+                  <label style={{ fontSize: '11px', color: '#666', fontWeight: 'bold', textTransform: 'uppercase' }}>
+                    Location
+                  </label>
+                  <div style={{ fontSize: '13px', color: '#333', marginTop: '5px' }}>
+                    <div style={{ fontWeight: 500 }}>{selectedMeeting.location?.name || 'N/A'}</div>
+                    {selectedMeeting.location?.address && (
+                      <div style={{ fontSize: '12px', color: '#666', marginTop: '3px' }}>
+                        {selectedMeeting.location.address}
+                      </div>
+                    )}
+                    {selectedMeeting.location?.city && (
+                      <div style={{ fontSize: '12px', color: '#666' }}>
+                        {selectedMeeting.location.city}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* GPS Coordinates */}
+                {selectedMeeting.gpsCoordinates && (
+                  <>
+                    <div>
+                      <label style={{ fontSize: '11px', color: '#666', fontWeight: 'bold', textTransform: 'uppercase' }}>
+                        Latitude
+                      </label>
+                      <div style={{ fontSize: '13px', color: '#333', marginTop: '5px', fontFamily: 'monospace' }}>
+                        {selectedMeeting.gpsCoordinates.latitude.toFixed(6)}
+                      </div>
+                    </div>
+
+                    <div>
+                      <label style={{ fontSize: '11px', color: '#666', fontWeight: 'bold', textTransform: 'uppercase' }}>
+                        Longitude
+                      </label>
+                      <div style={{ fontSize: '13px', color: '#333', marginTop: '5px', fontFamily: 'monospace' }}>
+                        {selectedMeeting.gpsCoordinates.longitude.toFixed(6)}
+                      </div>
+                    </div>
+
+                    <div>
+                      <label style={{ fontSize: '11px', color: '#666', fontWeight: 'bold', textTransform: 'uppercase' }}>
+                        Accuracy
+                      </label>
+                      <div style={{ fontSize: '13px', color: '#333', marginTop: '5px' }}>
+                        ±{selectedMeeting.gpsCoordinates.accuracy.toFixed(0)}m
+                      </div>
+                    </div>
+
+                    <div>
+                      <label style={{ fontSize: '11px', color: '#666', fontWeight: 'bold', textTransform: 'uppercase' }}>
+                        Captured At
+                      </label>
+                      <div style={{ fontSize: '13px', color: '#333', marginTop: '5px' }}>
+                        {new Date(selectedMeeting.gpsCoordinates.capturedAt).toLocaleString()}
+                      </div>
+                    </div>
+
+                    <div style={{ gridColumn: '1 / -1' }}>
+                      <Button
+                        variant="primary"
+                        size="sm"
+                        href={`https://www.google.com/maps/search/${selectedMeeting.gpsCoordinates.latitude},${selectedMeeting.gpsCoordinates.longitude}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ marginTop: '10px' }}
+                      >
+                        📍 Open in Google Maps
+                      </Button>
+                    </div>
+                  </>
+                )}
+              </div>
+            </Card.Body>
+            <Card.Footer className="bg-light d-flex justify-content-end gap-2">
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setShowMeetingDetailsModal(false)}
+              >
+                Close
+              </Button>
+            </Card.Footer>
+          </Card>
+        </div>
+      )}
     </>
   );
 };

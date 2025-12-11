@@ -8,13 +8,24 @@ import {
   Tab,
   Tabs,
   Divider,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
 } from '@mui/material';
 import {
   Person,
   Phone,
   Email,
   Security,
-  Notifications,
+  Work,
+  Badge,
+  LocationOn,
+  Event,
+  TrendingUp,
 } from '@mui/icons-material';
 
 interface TabPanelProps {
@@ -38,19 +49,73 @@ const TabPanel: React.FC<TabPanelProps> = ({ children, value, index, ...other })
 };
 
 const Profile: React.FC = () => {
-  // const theme = useTheme(); // Removed unused variable
   const [tabValue, setTabValue] = useState(0);
-
-  // User state
   const [userData, setUserData] = useState<any>(null);
+  const [activityData, setActivityData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Load user data from localStorage
-    const userData = localStorage.getItem('user');
-    if (userData) {
-      setUserData(JSON.parse(userData));
-    }
+    fetchUserData();
   }, []);
+
+  const fetchUserData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const token = localStorage.getItem('token');
+      
+      if (!token) {
+        setError('No authentication token found');
+        return;
+      }
+
+      // Fetch user profile data from /auth/me endpoint
+      const userResponse = await fetch('http://localhost:5000/api/auth/me', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (!userResponse.ok) {
+        throw new Error('Failed to fetch user data');
+      }
+
+      const userDataResponse = await userResponse.json();
+      if (userDataResponse.user) {
+        setUserData(userDataResponse.user);
+      }
+
+      // Fetch activity stats
+      const userId = localStorage.getItem('userId');
+      console.log('📊 Fetching activity for userId:', userId);
+      
+      if (userId) {
+        const statsResponse = await fetch(`http://localhost:5000/api/reports/employee/${userId}/details`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (statsResponse.ok) {
+          const statsData = await statsResponse.json();
+          console.log('📊 Activity data received:', statsData);
+          if (statsData.success && statsData.data) {
+            setActivityData({
+              totalClients: statsData.data.totalClients || 0,
+              totalMeetings: statsData.data.totalMeetings || 0,
+              meetings: statsData.data.meetings || []
+            });
+          }
+        } else {
+          console.error('❌ Failed to fetch activity stats:', statsResponse.status);
+        }
+      } else {
+        console.warn('⚠️ userId not found in localStorage');
+      }
+    } catch (err) {
+      console.error('Error fetching data:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load profile data');
+    } finally {
+      setLoading(false);
+    }
+  };
 
 // Get user initials for avatar
   const getUserInitials = (name: string) => {
@@ -252,13 +317,13 @@ const Profile: React.FC = () => {
                 iconPosition="start" 
               />
               <Tab 
-                label="Security" 
-                icon={<Security fontSize="small" />} 
+                label="Activity & Stats" 
+                icon={<TrendingUp fontSize="small" />} 
                 iconPosition="start" 
               />
               <Tab 
-                label="Settings" 
-                icon={<Notifications fontSize="small" />} 
+                label="Security" 
+                icon={<Security fontSize="small" />} 
                 iconPosition="start" 
               />
             </Tabs>
@@ -270,116 +335,269 @@ const Profile: React.FC = () => {
               Personal Information
             </Typography>
             
-            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 1.5 }}>
-              <Box sx={{ 
-                backgroundColor: '#f8fafc',
-                p: 1.5,
-                borderRadius: 1,
-                border: '1px solid #e2e8f0'
-              }}>
-                <Typography variant="caption" sx={{ 
-                  color: '#64748b', 
-                  display: 'block', 
-                  mb: 0.5,
-                  fontWeight: 500,
-                  textTransform: 'uppercase',
-                  fontSize: '0.6rem'
-                }}>
-                  Full Name
-                </Typography>
-                <Typography variant="body2" sx={{ fontWeight: 500, color: '#1e293b', fontSize: '0.8rem' }}>
-                  {userData.name || 'Not provided'}
-                </Typography>
+            {loading ? (
+              <Box sx={{ textAlign: 'center', py: 3 }}>
+                <Typography variant="body2" sx={{ color: '#64748b' }}>Loading profile data...</Typography>
               </Box>
+            ) : error ? (
+              <Box sx={{ backgroundColor: '#fee2e2', p: 2, borderRadius: 1, border: '1px solid #fecaca' }}>
+                <Typography variant="body2" sx={{ color: '#991b1b' }}>{error}</Typography>
+              </Box>
+            ) : (
+              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 1.5 }}>
+                <Box sx={{ 
+                  backgroundColor: '#f8fafc',
+                  p: 1.5,
+                  borderRadius: 1,
+                  border: '1px solid #e2e8f0'
+                }}>
+                  <Typography variant="caption" sx={{ 
+                    color: '#64748b', 
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 0.5,
+                    mb: 0.5,
+                    fontWeight: 500,
+                    textTransform: 'uppercase',
+                    fontSize: '0.6rem'
+                  }}>
+                    <Person fontSize="small" /> Full Name
+                  </Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 500, color: '#1e293b', fontSize: '0.8rem' }}>
+                    {userData?.name || 'Not provided'}
+                  </Typography>
+                </Box>
+                
+                <Box sx={{ 
+                  backgroundColor: '#f8fafc',
+                  p: 1.5,
+                  borderRadius: 1,
+                  border: '1px solid #e2e8f0'
+                }}>
+                  <Typography variant="caption" sx={{ 
+                    color: '#64748b', 
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 0.5,
+                    mb: 0.5,
+                    fontWeight: 500,
+                    textTransform: 'uppercase',
+                    fontSize: '0.6rem'
+                  }}>
+                    <Email fontSize="small" /> Email Address
+                  </Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 500, color: '#1e293b', fontSize: '0.8rem', wordBreak: 'break-all' }}>
+                    {userData?.email || 'Not provided'}
+                  </Typography>
+                </Box>
+                
+                <Box sx={{ 
+                  backgroundColor: '#f8fafc',
+                  p: 1.5,
+                  borderRadius: 1,
+                  border: '1px solid #e2e8f0'
+                }}>
+                  <Typography variant="caption" sx={{ 
+                    color: '#64748b', 
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 0.5,
+                    mb: 0.5,
+                    fontWeight: 500,
+                    textTransform: 'uppercase',
+                    fontSize: '0.6rem'
+                  }}>
+                    <Phone fontSize="small" /> Mobile Number
+                  </Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 500, color: '#1e293b', fontSize: '0.8rem' }}>
+                    {userData?.mobile || 'Not provided'}
+                  </Typography>
+                </Box>
+                
+                <Box sx={{ 
+                  backgroundColor: '#f8fafc',
+                  p: 1.5,
+                  borderRadius: 1,
+                  border: '1px solid #e2e8f0'
+                }}>
+                  <Typography variant="caption" sx={{ 
+                    color: '#64748b', 
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 0.5,
+                    mb: 0.5,
+                    fontWeight: 500,
+                    textTransform: 'uppercase',
+                    fontSize: '0.6rem'
+                  }}>
+                    <Badge fontSize="small" /> Role
+                  </Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 500, color: '#1e293b', fontSize: '0.8rem' }}>
+                    {getRoleDisplay(userData?.role, userData?.department)}
+                  </Typography>
+                </Box>
+
+                <Box sx={{ 
+                  backgroundColor: '#f8fafc',
+                  p: 1.5,
+                  borderRadius: 1,
+                  border: '1px solid #e2e8f0'
+                }}>
+                  <Typography variant="caption" sx={{ 
+                    color: '#64748b', 
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 0.5,
+                    mb: 0.5,
+                    fontWeight: 500,
+                    textTransform: 'uppercase',
+                    fontSize: '0.6rem'
+                  }}>
+                    <Work fontSize="small" /> Designation
+                  </Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 500, color: '#1e293b', fontSize: '0.8rem' }}>
+                    {userData?.designation || 'Not provided'}
+                  </Typography>
+                </Box>
+                
+                <Box sx={{ 
+                  backgroundColor: '#f8fafc',
+                  p: 1.5,
+                  borderRadius: 1,
+                  border: '1px solid #e2e8f0'
+                }}>
+                  <Typography variant="caption" sx={{ 
+                    color: '#64748b', 
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 0.5,
+                    mb: 0.5,
+                    fontWeight: 500,
+                    textTransform: 'uppercase',
+                    fontSize: '0.6rem'
+                  }}>
+                    <LocationOn fontSize="small" /> Department
+                  </Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 500, color: '#1e293b', fontSize: '0.8rem' }}>
+                    {userData?.department || 'Not provided'}
+                  </Typography>
+                </Box>
+              </Box>
+            )}
+          </TabPanel>
+
+          {/* Activity & Stats Tab */}
+          <TabPanel value={tabValue} index={1}>
+            <Box>
+              <Typography variant="subtitle1" sx={{ mb: 2.5, fontWeight: 600, color: '#1e293b', fontSize: '0.9rem' }}>
+                Activity & Performance
+              </Typography>
               
-              <Box sx={{ 
-                backgroundColor: '#f8fafc',
-                p: 1.5,
-                borderRadius: 1,
-                border: '1px solid #e2e8f0'
-              }}>
-                <Typography variant="caption" sx={{ 
-                  color: '#64748b', 
-                  display: 'block', 
-                  mb: 0.5,
-                  fontWeight: 500,
-                  textTransform: 'uppercase',
-                  fontSize: '0.6rem'
-                }}>
-                  Email Address
-                </Typography>
-                <Typography variant="body2" sx={{ fontWeight: 500, color: '#1e293b', fontSize: '0.8rem' }}>
-                  {userData.email || 'Not provided'}
-                </Typography>
+              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2.5, mb: 3 }}>
+                <Card sx={{ backgroundColor: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 1 }}>
+                  <CardContent sx={{ py: 2 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                      <Box sx={{ 
+                        backgroundColor: '#0284c7',
+                        p: 1.2,
+                        borderRadius: 1,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}>
+                        <Person sx={{ fontSize: 24, color: 'white' }} />
+                      </Box>
+                      <Box>
+                        <Typography variant="caption" sx={{ color: '#0369a1', display: 'block', fontWeight: 600, textTransform: 'uppercase', fontSize: '0.65rem' }}>
+                          Total Clients
+                        </Typography>
+                        <Typography variant="h5" sx={{ fontWeight: 700, color: '#0c4a6e', fontSize: '1.8rem' }}>
+                          {activityData?.totalClients || 0}
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </CardContent>
+                </Card>
+                
+                <Card sx={{ backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 1 }}>
+                    <CardContent sx={{ py: 2 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                        <Box sx={{ 
+                          backgroundColor: '#10b981',
+                          p: 1.2,
+                          borderRadius: 1,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}>
+                          <Event sx={{ fontSize: 24, color: 'white' }} />
+                        </Box>
+                        <Box>
+                          <Typography variant="caption" sx={{ color: '#047857', display: 'block', fontWeight: 600, textTransform: 'uppercase', fontSize: '0.65rem' }}>
+                            Total Meetings
+                          </Typography>
+                          <Typography variant="h5" sx={{ fontWeight: 700, color: '#065f46', fontSize: '1.8rem' }}>
+                            {activityData?.totalMeetings || 0}
+                          </Typography>
+                        </Box>
+                      </Box>
+                    </CardContent>
+                  </Card>
               </Box>
+
+              <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 600, color: '#1e293b', fontSize: '0.9rem' }}>
+                Recent Meetings
+              </Typography>
               
-              <Box sx={{ 
-                backgroundColor: '#f8fafc',
-                p: 1.5,
-                borderRadius: 1,
-                border: '1px solid #e2e8f0'
-              }}>
-                <Typography variant="caption" sx={{ 
-                  color: '#64748b', 
-                  display: 'block', 
-                  mb: 0.5,
-                  fontWeight: 500,
-                  textTransform: 'uppercase',
-                  fontSize: '0.6rem'
+              {activityData?.meetings && activityData.meetings.length > 0 ? (
+                <TableContainer component={Paper} sx={{ border: '1px solid #e2e8f0', borderRadius: 1 }}>
+                  <Table size="small">
+                    <TableHead>
+                      <TableRow sx={{ backgroundColor: '#f8fafc' }}>
+                        <TableCell sx={{ fontWeight: 600, color: '#1e293b', fontSize: '0.8rem' }}>Meeting Title</TableCell>
+                        <TableCell sx={{ fontWeight: 600, color: '#1e293b', fontSize: '0.8rem' }}>Client</TableCell>
+                        <TableCell sx={{ fontWeight: 600, color: '#1e293b', fontSize: '0.8rem' }}>Date</TableCell>
+                        <TableCell sx={{ fontWeight: 600, color: '#1e293b', fontSize: '0.8rem' }}>Time</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {activityData.meetings.slice(0, 5).map((meeting: any, index: number) => (
+                        <TableRow key={index} sx={{ '&:hover': { backgroundColor: '#f8fafc' } }}>
+                          <TableCell sx={{ fontSize: '0.8rem', color: '#1e293b', fontWeight: 500 }}>
+                            {meeting.title || 'Untitled'}
+                          </TableCell>
+                          <TableCell sx={{ fontSize: '0.8rem', color: '#64748b' }}>
+                            {meeting.client?.clientName || 'N/A'}
+                          </TableCell>
+                          <TableCell sx={{ fontSize: '0.8rem', color: '#64748b' }}>
+                            {new Date(meeting.date).toLocaleDateString()}
+                          </TableCell>
+                          <TableCell sx={{ fontSize: '0.8rem', color: '#64748b' }}>
+                            {meeting.time || 'N/A'}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              ) : (
+                <Box sx={{ 
+                  backgroundColor: '#f8fafc',
+                  p: 3,
+                  borderRadius: 1,
+                  border: '1px solid #e2e8f0',
+                  textAlign: 'center'
                 }}>
-                  Mobile Number
-                </Typography>
-                <Typography variant="body2" sx={{ fontWeight: 500, color: '#1e293b', fontSize: '0.8rem' }}>
-                  {userData.mobile || 'Not provided'}
-                </Typography>
-              </Box>
-              
-              <Box sx={{ 
-                backgroundColor: '#f8fafc',
-                p: 1.5,
-                borderRadius: 1,
-                border: '1px solid #e2e8f0'
-              }}>
-                <Typography variant="caption" sx={{ 
-                  color: '#64748b', 
-                  display: 'block', 
-                  mb: 0.5,
-                  fontWeight: 500,
-                  textTransform: 'uppercase',
-                  fontSize: '0.6rem'
-                }}>
-                  Role
-                </Typography>
-                <Typography variant="body2" sx={{ fontWeight: 500, color: '#1e293b', fontSize: '0.8rem' }}>
-                  {getRoleDisplay(userData.role, userData.department)}
-                </Typography>
-              </Box>
-              
-              <Box sx={{ 
-                backgroundColor: '#f8fafc',
-                p: 1.5,
-                borderRadius: 1,
-                border: '1px solid #e2e8f0'
-              }}>
-                <Typography variant="caption" sx={{ 
-                  color: '#64748b', 
-                  display: 'block', 
-                  mb: 0.5,
-                  fontWeight: 500,
-                  textTransform: 'uppercase',
-                  fontSize: '0.6rem'
-                }}>
-                  Department
-                </Typography>
-                <Typography variant="body2" sx={{ fontWeight: 500, color: '#1e293b', fontSize: '0.8rem' }}>
-                  {userData.department || 'Not provided'}
-                </Typography>
-              </Box>
+                  <Typography variant="body2" sx={{ color: '#64748b' }}>
+                    No meetings recorded yet
+                  </Typography>
+                </Box>
+              )}
             </Box>
           </TabPanel>
 
           {/* Security Tab */}
-          <TabPanel value={tabValue} index={1}>
+          <TabPanel value={tabValue} index={2}>
             <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 600, color: '#1e293b', fontSize: '0.9rem' }}>
               Security Settings
             </Typography>
@@ -452,43 +670,6 @@ const Profile: React.FC = () => {
                 </Typography>
               </Box>
             </Box>
-          </TabPanel>
-
-          {/* Preferences Tab */}
-          <TabPanel value={tabValue} index={2}>
-            <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 600, color: '#1e293b', fontSize: '0.9rem' }}>
-              Preferences
-            </Typography>
-            
-            <Typography variant="body2" sx={{ color: '#64748b', mb: 2, fontSize: '0.8rem' }}>
-              Preference settings will be available in a future update.
-            </Typography>
-            
-            <Card sx={{ 
-              borderRadius: 1,
-              backgroundColor: '#f8fafc',
-              border: '1px solid #e2e8f0'
-            }}>
-              <CardContent sx={{ py: 1.5 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                  <Box sx={{ 
-                    backgroundColor: '#eff6ff',
-                    p: 1,
-                    borderRadius: 1
-                  }}>
-                    <Notifications sx={{ fontSize: 16, color: '#3b82f6' }} />
-                  </Box>
-                  <Box>
-                    <Typography variant="subtitle2" sx={{ mb: 0.3, fontWeight: 600, color: '#1e293b', fontSize: '0.8rem' }}>
-                      Notification Settings
-                    </Typography>
-                    <Typography variant="body2" sx={{ color: '#64748b', fontSize: '0.75rem' }}>
-                      Email notifications, push notifications, and other preference options will be configurable here.
-                    </Typography>
-                  </Box>
-                </Box>
-              </CardContent>
-            </Card>
           </TabPanel>
         </Card>
       </Box>

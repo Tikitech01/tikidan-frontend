@@ -15,7 +15,9 @@ interface LocationPoint {
 
 interface MovementTrackingMapProps {
   employeeId: string;
-  date: string; // YYYY-MM-DD format
+  date?: string; // YYYY-MM-DD format (for backward compatibility)
+  startDate?: string; // YYYY-MM-DD format
+  endDate?: string; // YYYY-MM-DD format
 }
 
 // Icon for start point (login)
@@ -48,7 +50,7 @@ const trackingIcon = L.icon({
   shadowSize: [41, 41]
 });
 
-const MovementTrackingMap: React.FC<MovementTrackingMapProps> = ({ employeeId, date }) => {
+const MovementTrackingMap: React.FC<MovementTrackingMapProps> = ({ employeeId, date, startDate, endDate }) => {
   const [locations, setLocations] = useState<LocationPoint[]>([]);
   const [center, setCenter] = useState<[number, number]>([20, 78]);
   const [loading, setLoading] = useState(true);
@@ -60,7 +62,7 @@ const MovementTrackingMap: React.FC<MovementTrackingMapProps> = ({ employeeId, d
 
   useEffect(() => {
     fetchMovementData();
-  }, [employeeId, date]);
+  }, [employeeId, date, startDate, endDate]);
 
   const calculateDistance = (lat1: number, lng1: number, lat2: number, lng2: number) => {
     const R = 6371; // Earth's radius in kilometers
@@ -78,8 +80,19 @@ const MovementTrackingMap: React.FC<MovementTrackingMapProps> = ({ employeeId, d
       setLoading(true);
       const token = localStorage.getItem('token');
       
-      // Convert date to ISO format for API
-      const apiDate = new Date(date).toISOString().split('T')[0];
+      // Determine which date to use for API call
+      let apiDate: string;
+      if (startDate && endDate) {
+        // Use start date when both provided
+        apiDate = new Date(startDate).toISOString().split('T')[0];
+      } else if (startDate) {
+        apiDate = new Date(startDate).toISOString().split('T')[0];
+      } else if (date) {
+        apiDate = new Date(date).toISOString().split('T')[0];
+      } else {
+        // Fallback to today if no date provided
+        apiDate = new Date().toISOString().split('T')[0];
+      }
       
       const response = await fetch(
         `http://localhost:5000/api/reports/employee/${employeeId}/movement?date=${apiDate}`,
@@ -95,7 +108,21 @@ const MovementTrackingMap: React.FC<MovementTrackingMapProps> = ({ employeeId, d
         console.log('Movement data:', data);
         
         if (data.success && data.data && data.data.locations) {
-          const locationPoints = data.data.locations as LocationPoint[];
+          let locationPoints = data.data.locations as LocationPoint[];
+          
+          // Filter by date range if both startDate and endDate are provided
+          if (startDate && endDate) {
+            const startDateTime = new Date(startDate).getTime();
+            const endDateTime = new Date(endDate);
+            endDateTime.setHours(23, 59, 59, 999);
+            const endDateTimeMs = endDateTime.getTime();
+            
+            locationPoints = locationPoints.filter(point => {
+              const pointTime = new Date(point.timestamp).getTime();
+              return pointTime >= startDateTime && pointTime <= endDateTimeMs;
+            });
+          }
+          
           setLocations(locationPoints);
 
           // Calculate statistics

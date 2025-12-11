@@ -82,6 +82,7 @@ const Login: React.FC = () => {
       if (data.success) {
         localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify(data.user));
+        localStorage.setItem('userId', data.user.id); // Store userId separately for API calls
         navigate('/reports');
       } else {
         // Check if the error is related to suspension
