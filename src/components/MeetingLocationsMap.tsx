@@ -38,14 +38,28 @@ const MeetingLocationsMap: React.FC<MeetingLocationsMapProps> = ({ meetings }) =
     const locationMap = new Map<string, MeetingLocation>();
 
     meetings.forEach((meeting) => {
-      if (meeting.location && meeting.location._id) {
-        const locId = meeting.location._id;
+      // Get coordinates - try location coordinates first, then fallback to gpsCoordinates
+      const latitude = meeting.location?.latitude || meeting.gpsCoordinates?.latitude;
+      const longitude = meeting.location?.longitude || meeting.gpsCoordinates?.longitude;
+
+      // Only include if we have valid coordinates
+      if (latitude && longitude) {
+        // If using location coordinates, group by location._id
+        // If using GPS coordinates, use meeting._id to keep them separate
+        const isUsingLocationCoords = meeting.location?.latitude && meeting.location?.longitude;
+        const locId = isUsingLocationCoords 
+          ? meeting.location?._id 
+          : `gps-${meeting._id}`;
+        
+        const locName = meeting.location?.name || 'Meeting Location';
+        const locAddress = meeting.location?.address || '';
+        
         const existing = locationMap.get(locId) || {
           _id: locId,
-          name: meeting.location.name || 'Unknown',
-          address: meeting.location.address || '',
-          latitude: meeting.gpsCoordinates?.latitude || (Math.random() * 50 + 10), // Fallback to random for demo
-          longitude: meeting.gpsCoordinates?.longitude || (Math.random() * 100 - 50),
+          name: locName,
+          address: locAddress,
+          latitude: latitude,
+          longitude: longitude,
           meetingCount: 0
         };
         existing.meetingCount += 1;

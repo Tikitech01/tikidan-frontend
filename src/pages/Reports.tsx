@@ -170,10 +170,29 @@ const Reports: React.FC = () => {
 
       if (response.ok) {
         const data = await response.json();
-        console.log('All meetings from API:', data.data);
+        console.log('✅ All meetings from API:', data.data);
+        
+        // Log each meeting's coordinate status
+        data.data?.forEach((m: any, i: number) => {
+          const locLat = (m.location as any)?.latitude;
+          const locLng = (m.location as any)?.longitude;
+          const gpsLat = m.gpsCoordinates?.latitude;
+          const gpsLng = m.gpsCoordinates?.longitude;
+          console.log(`  ${i+1}. "${m.title}" - Location: ${m.location?.name || 'NONE'} | Location Coords: ${locLat ? `${locLat},${locLng}` : 'NONE'} | GPS Coords: ${gpsLat ? `${gpsLat},${gpsLng}` : 'NONE'}`);
+        });
+        
         // Filter to only meetings with locations
         const meetingsWithLocations = (data.data || []).filter((m: Meeting) => m.location && m.location._id);
-        console.log('Meetings with locations:', meetingsWithLocations);
+        console.log(`📍 Meetings with location reference: ${meetingsWithLocations.length}`);
+        
+        // Also show which have actual coordinates
+        const meetingsWithCoords = meetingsWithLocations.filter((m: Meeting) => {
+          const hasLoc = (m.location as any)?.latitude && (m.location as any)?.longitude;
+          const hasGps = m.gpsCoordinates?.latitude && m.gpsCoordinates?.longitude;
+          return hasLoc || hasGps;
+        });
+        console.log(`🗺️  Meetings with actual coordinates: ${meetingsWithCoords.length}`);
+        
         setAllMeetings(meetingsWithLocations);
       } else {
         console.error('API response not ok:', response.status);
