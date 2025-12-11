@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Card, Row, Col, Spinner, Button } from 'react-bootstrap';
 import { Icon } from '@iconify/react';
 import MeetingLocationsMap from '../components/MeetingLocationsMap';
-import MovementTrackMap from '../components/MovementTrackMap';
+import MovementTrackingMap from '../components/MovementTrackingMap';
 import LiveLocationMap from '../components/LiveLocationMap';
 import { getApiUrl } from '../services/api';
 
@@ -13,24 +13,6 @@ interface EmployeeDetailsData {
   totalClients: number;
   totalMeetings: number;
   meetings: Array<any>;
-}
-
-interface LocationPoint {
-  _id: string;
-  latitude: number;
-  longitude: number;
-  accuracy?: number;
-  timestamp: string;
-  distanceFromPrevious: number;
-  timeFromPrevious: number;
-}
-
-interface MovementData {
-  locations: LocationPoint[];
-  totalPoints: number;
-  totalDistance: string;
-  totalTime: number;
-  date: string;
 }
 
 interface LiveLocationData {
@@ -56,8 +38,6 @@ const EmployeeDetails: React.FC = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<EmployeeDetailsData | null>(null);
-  const [movementData, setMovementData] = useState<MovementData | null>(null);
-  const [movementLoading, setMovementLoading] = useState(false);
   const [liveLocation, setLiveLocation] = useState<LiveLocationData | null>(null);
   const [liveLocationLoading, setLiveLocationLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -101,33 +81,6 @@ const EmployeeDetails: React.FC = () => {
 
   const handleClose = () => {
     navigate(-1);
-  };
-
-  const fetchMovementData = async () => {
-    try {
-      setMovementLoading(true);
-      const token = localStorage.getItem('token');
-      
-      const response = await fetch(`${getApiUrl()}/reports/employee/${id}/movement`, {
-        headers: { 
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch movement data');
-      }
-
-      const result = await response.json();
-      if (result.success && result.data) {
-        setMovementData(result.data);
-      }
-    } catch (err) {
-      console.error('Error fetching movement data:', err);
-    } finally {
-      setMovementLoading(false);
-    }
   };
 
   const fetchLiveLocation = async () => {
@@ -472,22 +425,8 @@ const EmployeeDetails: React.FC = () => {
 
                   {activeMapTab === 'movement' && (
                     <>
-                      {movementLoading ? (
-                        <div style={{
-                          textAlign: 'center',
-                          padding: '40px 20px',
-                          color: '#999',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          height: '100%'
-                        }}>
-                          <Spinner animation="border" size="sm" style={{ marginBottom: '12px' }} />
-                          <p style={{ margin: 0, fontSize: '14px', fontWeight: 500 }}>Loading movement data...</p>
-                        </div>
-                      ) : movementData && movementData.locations.length > 0 ? (
-                        <MovementTrackMap locations={movementData.locations} />
+                      {id ? (
+                        <MovementTrackingMap employeeId={id} date={new Date().toISOString().split('T')[0]} />
                       ) : (
                         <div style={{
                           textAlign: 'center',
@@ -500,24 +439,7 @@ const EmployeeDetails: React.FC = () => {
                           height: '100%'
                         }}>
                           <Icon icon="mdi:route" width="48" style={{ marginBottom: '12px' }} />
-                          <p style={{ margin: '0 0 12px 0', fontSize: '14px', fontWeight: 500 }}>No movement tracking data</p>
-                          {!movementData && (
-                            <button
-                              onClick={fetchMovementData}
-                              style={{
-                                backgroundColor: '#2196F3',
-                                color: 'white',
-                                border: 'none',
-                                padding: '8px 16px',
-                                borderRadius: '4px',
-                                fontSize: '12px',
-                                cursor: 'pointer',
-                                fontWeight: 600
-                              }}
-                            >
-                              Load Movement Data
-                            </button>
-                          )}
+                          <p style={{ margin: 0, fontSize: '14px', fontWeight: 500 }}>Unable to load movement data</p>
                         </div>
                       )}
                     </>
