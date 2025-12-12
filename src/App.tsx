@@ -10,6 +10,7 @@ import Clients from './pages/Clients';
 import Employees from './pages/Employees';
 import Profile from './pages/Profile';
 import Meetings from './pages/Meetings';
+import Expenses from './pages/Expenses';
 import EmployeeDetails from './pages/EmployeeDetails';
 import PlaceholderPage from './pages/PlaceholderPage';
 import { startLocationTracking, stopLocationTracking } from './services/locationTracker';
@@ -160,7 +161,7 @@ function App() {
                     path="/expenses" 
                     element={
                       <PermissionRoute 
-                        element={<PlaceholderPage />} 
+                        element={<Expenses />} 
                         requiredPermission="expenses_view" 
                       />
                     } 
